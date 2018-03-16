@@ -31,9 +31,9 @@ def visualizeCIFDataset(dataset):
                 mask /= maxMask
             # else:
                 # break
-            # scipy.misc.imsave('outfile.jpg', img)
-            cv2.imwrite("cell_" + repr(imageCounter) + "_c_" + repr(channel) + ".jpg", img*255)
-            cv2.imwrite("mask_" + repr(imageCounter) + "_c_" + repr(channel) + ".jpg", mask*255)
+
+            # cv2.imwrite("cell_" + repr(imageCounter) + "_c_" + repr(channel) + ".jpg", img*255)
+            # cv2.imwrite("mask_" + repr(imageCounter) + "_c_" + repr(channel) + ".jpg", mask*255)
             cv2.imshow('image',img)
             cv2.imshow('mask',mask)
             chr = cv2.waitKey(20)
