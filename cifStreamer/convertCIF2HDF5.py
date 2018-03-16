@@ -1,16 +1,10 @@
-
-import numpy as np
-
-
-from .cifDataset import CIFDataset
-from .hdf5Dataset import HDF5Dataset
+from cifDataset import CIFDataset
+from hdf5Dataset import HDF5Dataset
 import h5py
+import sys
 
 
-
-
-
-def convertCIFToHDF5(inputFile, outputFile):
+def convertCIF2HDF5(inputFile, outputFile):
     try:
         print('Loading ' + inputFile)
         dataset = CIFDataset(inputFile)
@@ -41,11 +35,16 @@ def convertCIFToHDF5(inputFile, outputFile):
         hdf5.close()
         print("Creating HDF5 file finished.")
 
-    # print(image)
+def __main__():
+    if (len(sys.argv) != 3):
+        print("Wrong number of input arguments. Usage: python convertCIF2HDF5 input.cif output.hdf5")
+    else:
+        convertCIF2HDF5(sys.argv[1], sys.argv[2])
+  
+# # dataset = CIFDataSet("../05-Aug-2015_A04-noBF.cif")
+# # # dataset = HDF5DataSet("test.dhf5")
+# # visualizeCIFDataset(dataset)
+# # # convertToHDF5("../05-Aug-2015_A04-noBF.cif", "test.dhf5")
 
-# dataset = CIFDataSet("../05-Aug-2015_A04-noBF.cif")
-# # dataset = HDF5DataSet("test.dhf5")
-# visualizeCIFDataset(dataset)
-# # convertToHDF5("../05-Aug-2015_A04-noBF.cif", "test.dhf5")
-# # if __name__ == "__main__":
-# #     __main__()
+if __name__ == "__main__":
+    __main__()
