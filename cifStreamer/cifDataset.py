@@ -42,6 +42,11 @@ class CIFDataset(object):
         else:
             return False
 
+    def numberOfImages(self):
+        return self._nimages
+
+    def numberOfChannels(self):
+        return self._nchannels
 
     def __del__(self):
         javabridge.kill_vm()

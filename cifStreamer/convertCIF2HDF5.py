@@ -18,8 +18,8 @@ def convertCIF2HDF5(inputFile, outputFile):
             image, mask = dataset.nextImage()
 
             imageGrp = grp.create_group("cell_" + repr(imageCounter))
-            dsetImg = imageGrp.create_dataset("image", data=image)
-            dsetMsk = imageGrp.create_dataset("mask", data=mask)
+            dsetImg = imageGrp.create_dataset("image", data=image, compression='gzip', compression_opts=9)
+            dsetMsk = imageGrp.create_dataset("mask", data=mask, compression='gzip', compression_opts=9)
             imageCounter += 1
 
             if (imageCounter % 100 == 0):
@@ -44,7 +44,8 @@ def __main__():
 # # dataset = CIFDataSet("../05-Aug-2015_A04-noBF.cif")
 # # # dataset = HDF5DataSet("test.dhf5")
 # # visualizeCIFDataset(dataset)
-# # # convertToHDF5("../05-Aug-2015_A04-noBF.cif", "test.dhf5")
+#convertCIF2HDF5("../../../data/05-Aug-2015_A04-noBF.cif", "../../../data/test3.dhf5")
+convertCIF2HDF5("../../../data/20180515_testData/DONOR1714_living single cells_321987.cif", "../../../data/20180515_testData/DONOR1714_living single cells_321987.dhf5")
 
 if __name__ == "__main__":
     __main__()
