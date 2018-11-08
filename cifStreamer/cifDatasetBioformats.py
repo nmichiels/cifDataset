@@ -3,20 +3,35 @@ import bioformats.formatreader
 import javabridge
 import javabridge.jutil
 
+
 class CIFDataset(object):
     
     def __init__(self, cifFile):
         try:
             print('Initializing Dataset: ' + cifFile)
             javabridge.start_vm(class_path=bioformats.JARS, max_heap_size='8G')
+
+            # o = bioformats.get_omexml_metadata(path=cifFile)
+            # print("test: ", o)
             self._reader = bioformats.formatreader.get_image_reader("tmp", path=cifFile)
 
-            self._nimages = javabridge.call(self._reader.metadata, "getImageCount", "()I")
-            self._nchannels = javabridge.call(self._reader.metadata, "getChannelCount", "(I)I", 0)
+            jmd = javabridge.JWrapper(self._reader.rdr.getMetadataStore())
+            print("ChannelName", jmd.getChannelName(1,0),jmd.getChannelName(1,1), jmd.getChannelName(1,2))
+    
+
+            # print("test", test)
+    
+
+            self._nimages = jmd.getImageCount()
+            self._nchannels = jmd.getChannelCount(0)
             print("Image Count: " + repr(self._nimages))
             print("Channel Count: " + repr(self._nchannels))
 
             self._current_image_ID = 0
+         
+            # test = javabridge.call(self._reader.metadata, "getChannelName", "(II)Ljava/lang/String;", 10,1)
+            # self.getChannelName = javabridge.jutil.make_method('getChannelName','(II)Ljava/lang/String;', '''Get the name for a particular channel. imageIndex - image # to query (use C = 0_ channelIndex - channel # to querry''')
+            # channelName = self.getChannelName(20,1)
         except javabridge.jutil.JavaException as err:
             print("JavaBridge Error.")
             print("JavaException error: {0}".format(err))
@@ -30,6 +45,12 @@ class CIFDataset(object):
         mask = self._reader.read(series=self._current_image_ID+1)
         self._current_image_ID += 2
         return image, mask
+
+    def nextImage_nomask(self):
+        image = self._reader.read(series=self._current_image_ID)
+        # mask = self._reader.read(series=self._current_image_ID+1)
+        self._current_image_ID += 2
+        return image
 
     # set dataset back to first image
     def reset(self):
