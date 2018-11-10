@@ -2,8 +2,11 @@ import numpy as np
 import builtins
 from cifDataset.cifStreamer.tiffParser import TiffParser, IFD
 
+import cifDataset.cifStreamer.FlowSightReaderC.FlowSightReaderC.core as fsr
+
 
 from enum import Enum
+
 
 
 
@@ -100,7 +103,12 @@ class FlowSightParser(object):
 
         if (compression == IFD.GREYSCALE_COMPRESSION.value):
             # print("Loading Image Data")
-            data = self.openGreyscaleBytes(ifd, imageWidth, imageHeight, self._channelCount)
+            
+            
+            data = self.openGreyscaleBytesC(ifd, imageWidth, imageHeight, self._channelCount)
+            # data = self.openGreyscaleBytes(ifd, imageWidth, imageHeight, self._channelCount)
+
+
         elif (compression == IFD.BITMASK_COMPRESSION.value):
             # print("Loading Mask Data")
             data = self.openBitmaskBytes(ifd, imageWidth, imageHeight, self._channelCount)
@@ -122,6 +130,23 @@ class FlowSightParser(object):
         return data
             
     
+    def openGreyscaleBytesC(self, ifd, imageWidth, imageHeight, nchannels):
+        stripByteCounts = ifd[IFD.STRIP_BYTE_COUNTS.value]
+        stripOffsets = ifd[IFD.STRIP_OFFSETS.value]
+
+        if type(stripByteCounts) is list:
+            pass
+        else:
+            stripByteCounts = [stripByteCounts]
+            stripOffsets = [stripOffsets]
+
+        data = np.zeros([imageHeight,imageWidth*self._channelCount], dtype=np.float32)
+        # TODO: fix pass stripByteCounts and  stripOffsets as array
+        fsr.openGreyscaleBytes(imageWidth, imageHeight, self._channelCount, stripByteCounts[0], stripOffsets[0], data)
+        
+        return data
+
+
     def openGreyscaleBytes(self, ifd, imageWidth, imageHeight, nchannels):
         stripByteCounts = ifd[IFD.STRIP_BYTE_COUNTS.value]
         stripOffsets = ifd[IFD.STRIP_OFFSETS.value]
@@ -187,16 +212,16 @@ class FlowSightParser(object):
                     if (not self.getNextByte()):
                         return None #int(0xff) #return bytes([0xff])
 
-                    # print("new byte: ", bin(self.currentByte))
+                    # print("new byte P: ", hex(self.currentByte))
                 if (self.nibbleIdx == 0):
                     self.nibbleIdx = self.nibbleIdx + 1
                     nibble =  (self.currentByte) & 0x0f # bytes([self.bytesToInt(self.currentByte) & 0x0f]);
-                    # print("new nibble: ", bin(nibble))
+                    # print("new nibble P: ", hex(nibble))
                     return nibble
                 else:
                     self.nibbleIdx = self.nibbleIdx + 1
                     nibble = self.currentByte >> 4 # returing as is integer because no proper way to convert to bytes object
-                    # print("new nibble: ", bin(nibble))
+                    # print("new nibble P: ", hex(nibble))
                     return nibble
             
             def bytesToInt(self, bytes):
@@ -239,6 +264,18 @@ class FlowSightParser(object):
         lastRow = np.zeros(imageWidth * nchannels, dtype=int)
         thisRow = np.zeros(imageWidth * nchannels, dtype=int)
         # print("first val: ", diffs.__next__())
+
+        # diffs.__next__()
+        # diffs.__next__()
+        # diffs.__next__()
+        # diffs.__next__()
+        # diffs.__next__()
+        # print("next P: ", diffs.__next__())
+        # print("next P: ", diffs.__next__())
+        # print("next P: ", diffs.__next__())
+        # print("next P: ", diffs.__next__())
+        # print("next P: ", diffs.__next__())
+        # return uncompressed
 
         skip = diffs.__next__()  # TODO: now skipping one value, but why?
        
