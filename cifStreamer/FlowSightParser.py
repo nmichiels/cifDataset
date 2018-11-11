@@ -22,11 +22,12 @@ class FlowSightParser(object):
         self._fp = 0
         self._channelCount = 0
         self._numCells = 0
+        self._channelLayout = ""
 
         pass
     
     def loadFile(self,file):
-        self._fp = builtins.open(file)
+        self._fp = builtins.open(file, "r+b")
         self.loadFP(self._fp)
         
     def loadFP(self, fp):
@@ -34,7 +35,7 @@ class FlowSightParser(object):
         self._tiffParser = TiffParser(self._fp)
 
     
-    def loadMetaData(self):
+    def loadMetaData(self, verbose=False):
         
         # ifd = self.getFirstIFD()
         # self.fillInIFD(ifd)
@@ -42,7 +43,8 @@ class FlowSightParser(object):
         
         ifd = self._tiffParser.loadIFD(0)
         self._tiffParser.fillInIFD(ifd)
-        # self.printIFDvalues(ifd)
+        if (verbose):
+            self._tiffParser.printIFDvalues(ifd)
 
 
         xml = ifd[self.METADATA_XML_TAG]
@@ -58,11 +60,13 @@ class FlowSightParser(object):
         
 
         self._channelCount = ChannelsInUseIndicatorNodes.text.split(' ').count('1')
+        self._channelLayout = ChannelsInUseIndicatorNodes.text
 
-        print("Channels used: %s (%i)" %(ChannelsInUseIndicatorNodes.text , self._channelCount))
-        print("Num Cells: %i" %(self._numCells))
-        for child in ObjectsToAcquireNodes:
-            print(child.tag, child.attrib)
+        if (verbose):
+            print("Channels used: %s (%i)" %(ChannelsInUseIndicatorNodes.text , self._channelCount))
+            print("Num Cells: %i" %(self._numCells))
+            for child in ObjectsToAcquireNodes:
+                print(child.tag, child.attrib)
         # if (IFD.IMAGE_WIDTH.value in ifd):
         #     print("add lfd")
 
@@ -256,6 +260,7 @@ class FlowSightParser(object):
             lastRow = thisRow
             thisRow = temp
 
+        uncompressed = uncompressed / 0xffff # Scale with maximum 16bit value
         # print(uncompressed.tobytes())
         # uncompressed = uncompressed / np.amax(uncompressed)
         # print(uncompressed)
@@ -315,9 +320,10 @@ class FlowSightParser(object):
         if (off != uncompressed.size):
             print("Buffer shortfall encountered when decompressing bitmask data")
 
-        maxVal = np.amax(uncompressed)
-        if (maxVal != 0):
-            uncompressed = uncompressed / maxVal
+        uncompressed = uncompressed / 0xff
+        # maxVal = np.amax(uncompressed)
+        # if (maxVal != 0):
+        #     uncompressed = uncompressed / maxVal
             # return None
         # print(uncompressed)
         

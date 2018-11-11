@@ -1,5 +1,6 @@
 import builtins
-from cifDataset.cifStreamer.FlowSightParser import FlowSightParser
+# from cifDataset.cifStreamer.FlowSightParser import FlowSightParser
+from cifDataset.cifStreamer.FlowSightParserC import FlowSightParser
 
 class CIFDataset(object):
     
@@ -11,7 +12,7 @@ class CIFDataset(object):
 
         self._flowSightParser = FlowSightParser()
         self._flowSightParser.loadFP(fp)
-        self._flowSightParser.loadMetaData()
+        self._flowSightParser.loadMetaData(verbose=False)
 
         self._nimages = self._flowSightParser._numCells
         self._nchannels = self._flowSightParser._channelCount

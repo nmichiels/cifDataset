@@ -209,7 +209,7 @@ bool openFilePointer(const std::string& fileName){
       thisRow = temp;
 
     }
-
+    uncompressed = uncompressed / 0xffff;  // Scale with maximum 16bit value
     
     // for (int y=0; y<imageHeight; y++) {
     //   for (int x = 0; x<widthAllChannels; x++) {

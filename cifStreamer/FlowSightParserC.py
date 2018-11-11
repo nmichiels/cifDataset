@@ -25,11 +25,12 @@ class FlowSightParser(object):
         self._fp = 0
         self._channelCount = 0
         self._numCells = 0
+        self._channelLayout = ""
 
         pass
     
     def loadFile(self,file):
-        self._fp = builtins.open(file)
+        self._fp = builtins.open(file, "r+b")
         self.loadFP(self._fp)
         
     def loadFP(self, fp):
@@ -37,7 +38,7 @@ class FlowSightParser(object):
         self._tiffParser = TiffParser(self._fp)
 
     
-    def loadMetaData(self):
+    def loadMetaData(self, verbose=False):
         
         # ifd = self.getFirstIFD()
         # self.fillInIFD(ifd)
@@ -45,7 +46,8 @@ class FlowSightParser(object):
         
         ifd = self._tiffParser.loadIFD(0)
         self._tiffParser.fillInIFD(ifd)
-        # self.printIFDvalues(ifd)
+        if (verbose):
+            self._tiffParser.printIFDvalues(ifd)
 
 
         xml = ifd[self.METADATA_XML_TAG]
@@ -61,11 +63,13 @@ class FlowSightParser(object):
         
 
         self._channelCount = ChannelsInUseIndicatorNodes.text.split(' ').count('1')
+        self._channelLayout = ChannelsInUseIndicatorNodes.text
 
-        print("Channels used: %s (%i)" %(ChannelsInUseIndicatorNodes.text , self._channelCount))
-        print("Num Cells: %i" %(self._numCells))
-        for child in ObjectsToAcquireNodes:
-            print(child.tag, child.attrib)
+        if (verbose):
+            print("Channels used: %s (%i)" %(ChannelsInUseIndicatorNodes.text , self._channelCount))
+            print("Num Cells: %i" %(self._numCells))
+            for child in ObjectsToAcquireNodes:
+                print(child.tag, child.attrib)
         # if (IFD.IMAGE_WIDTH.value in ifd):
         #     print("add lfd")
 
@@ -145,176 +149,7 @@ class FlowSightParser(object):
         fsr.openGreyscaleBytes(imageWidth, imageHeight, self._channelCount, stripByteCounts[0], stripOffsets[0], data)
         
         return data
-
-
-    def openGreyscaleBytes(self, ifd, imageWidth, imageHeight, nchannels):
-        stripByteCounts = ifd[IFD.STRIP_BYTE_COUNTS.value]
-        stripOffsets = ifd[IFD.STRIP_OFFSETS.value]
-        # print("stripByteCounts: ", stripByteCounts, ", stripOffsets: " , stripOffsets)
-
-        if type(stripByteCounts) is list:
-            pass
-        else:
-            stripByteCounts = [stripByteCounts]
-            stripOffsets = [stripOffsets]
-            
-        # print("Data is a list of", len(stripByteCounts))
-
-        class Diff:
-            """Iterator for bytes and nibbles"""
-            def __init__(self, fp, byteorder):
-                self.index = -1
-                self.offset = 0
-                self.count = 0
-                self.currentByte = None
-                self.nibbleIdx = 2
-                self.value = 0
-                self.shift = 0
-                self.bHasNext = True
-                self.loaded = self.bHasNext
-                self.__fp = fp
-                self.__byteorder = byteorder
-
-            def hasNext(self):
-                if (self.loaded): return self.bHasNext
-
-                self.shift = 0
-                self.value = 0
-                while (not self.loaded):
-                    nibble = self.getNextNibble()
-                    if (nibble == None):
-                        print("IOException during read of greyscale image")
-                        self.loaded = True
-                        self.bHasNext = False
-                        return self.bHasNext
-
-                    self.value += ((nibble & 0x7)  << self.shift);
-                    self.shift += 3
-                    if ((nibble & 0x8) == 0):
-                        self.loaded = True
-                        self.bHasNext = True
-                        if ((nibble & 0x4) != 0):
-                            # The number is negative
-                            # and the bits at 1 << shift and above
-                            # should all be "1". This does it.
-                            # two's complement
-                            # print("before",self.value, bin(self.value))
-                            self.value = self.value | (-(1 << self.shift))
-                            # print("after:",self.value, bin(self.value))
-                # print("value: ", self.value)
-                return self.bHasNext
-                           
-                    
-
-            def getNextNibble(self):
-                if (self.nibbleIdx >= 2):
-                    self.nibbleIdx = 0
-                    if (not self.getNextByte()):
-                        return None #int(0xff) #return bytes([0xff])
-
-                    # print("new byte P: ", hex(self.currentByte))
-                if (self.nibbleIdx == 0):
-                    self.nibbleIdx = self.nibbleIdx + 1
-                    nibble =  (self.currentByte) & 0x0f # bytes([self.bytesToInt(self.currentByte) & 0x0f]);
-                    # print("new nibble P: ", hex(nibble))
-                    return nibble
-                else:
-                    self.nibbleIdx = self.nibbleIdx + 1
-                    nibble = self.currentByte >> 4 # returing as is integer because no proper way to convert to bytes object
-                    # print("new nibble P: ", hex(nibble))
-                    return nibble
-            
-            def bytesToInt(self, bytes):
-                return int.from_bytes(bytes, self.__byteorder)
-
-            def getNextByte(self):
-                # pass
-                while (self.offset == self.count):
-                    self.index = self.index + 1
-                    if (self.index == len(stripByteCounts)):
-                        self.loaded = True
-                        self.bHasNext = False
-                        return False
-                
-                    self.__fp.seek(stripOffsets[self.index])
-                    self.offset = 0
-                    self.count = stripByteCounts[self.index]
-                
-                self.currentByte = self.__fp.read(1)[0] ##self.bytesToInt(self.__fp.read(1))
-                self.offset = self.offset + 1
-                return True
-            
-
-
-            def __iter__(self):
-                return self
-
-            def __next__(self):
-                if (not self.hasNext()):
-                     print("Tried to read past end of IFD data")
-                     return None
-                self.loaded = False
-                return self.value
-        
-
-        diffs = Diff(self._fp, self._tiffParser._byteorder)
-
-        # uncompressedBytes = np.zeros(imageWidth * imageHeight * 2 * nchannels, dtype=bytes)
-        uncompressed = np.zeros((imageWidth * nchannels) * imageHeight , dtype=int)
-        lastRow = np.zeros(imageWidth * nchannels, dtype=int)
-        thisRow = np.zeros(imageWidth * nchannels, dtype=int)
-        # print("first val: ", diffs.__next__())
-
-        # diffs.__next__()
-        # diffs.__next__()
-        # diffs.__next__()
-        # diffs.__next__()
-        # diffs.__next__()
-        # print("next P: ", diffs.__next__())
-        # print("next P: ", diffs.__next__())
-        # print("next P: ", diffs.__next__())
-        # print("next P: ", diffs.__next__())
-        # print("next P: ", diffs.__next__())
-        # return uncompressed
-
-        skip = diffs.__next__()  # TODO: now skipping one value, but why?
-       
-        index = 0
-        for y in range(imageHeight):
-            for x in range(imageWidth*nchannels):
-                if (x != 0):
-                    thisRow[x] = (diffs.__next__() + lastRow[x] + thisRow[x-1] - lastRow[x-1])
-                else:
-                    thisRow[x] = (diffs.__next__() + lastRow[x])
-                uncompressed[index] = int(thisRow[x])
-                # self.unpackBytes(int(thisRow[x]), uncompressedBytes, index, 2, self._byteorder)
-                index += 1
-            temp = lastRow
-            lastRow = thisRow
-            thisRow = temp
-
-        # print(uncompressed.tobytes())
-        # uncompressed = uncompressed / np.amax(uncompressed)
-        # print(uncompressed)
-        # uncompressed = np.frombuffer(uncompressedBytes.tobytes(), dtype=np.float16, count=imageWidth * imageHeight * nchannels)
-        return uncompressed
-        # import struct
-        # print(struct.unpack('f', uncompressed.tobytes()))
-        # return uncompressed
-        # print(diffs.hasNext())
-        # print(diffs.hasNext())
-        # print(diffs.hasNext())
-    #TODO: fix little endian        
-    def unpackBytes(self, value, bytebuffer, ndx, nBytes, little):
-        if (little):
-            for i in range(0,nBytes):
-                bytebuffer[ndx + i] = ((value >> (8*i)) & 0xff).to_bytes(1, self._tiffParser._byteorder)
-        else:
-            for i in range(0,nBytes):
-                bytebuffer[ndx + i] = ((value >> (8*(nBytes - i - 1))) & 0xff).to_bytes(1, self._tiffParser._byteorder)
-            
     
-        # print(value, bin(value))
 
     def openBitmaskBytes(self, ifd, imageWidth, imageHeight, nchannels):
         stripByteCounts = ifd[IFD.STRIP_BYTE_COUNTS.value]
@@ -352,9 +187,11 @@ class FlowSightParser(object):
         if (off != uncompressed.size):
             print("Buffer shortfall encountered when decompressing bitmask data")
 
-        maxVal = np.amax(uncompressed)
-        if (maxVal != 0):
-            uncompressed = uncompressed / maxVal
+
+        uncompressed = uncompressed / 0xff
+        # maxVal = np.amax(uncompressed)
+        # if (maxVal != 0):
+        #     uncompressed = uncompressed / maxVal
             # return None
         # print(uncompressed)
         

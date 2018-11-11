@@ -67,7 +67,7 @@ class TiffParser(object):
     
 
  
-    def __init__(self, fp):
+    def __init__(self, fp, verbose=False):
         self._fp = fp
         self._fakeBigTiff = False
         self._bigTiff = False
@@ -77,7 +77,7 @@ class TiffParser(object):
         self._fp.seek(0,2) # move the cursor to the end of the file
         self._length  = self._fp.tell()
         self._fp.seek(startFp)
-        print(self._length)
+        # print(self._length)
         self._channelCount = 0
         self._numCells = 0
 
@@ -94,7 +94,8 @@ class TiffParser(object):
         else:
             self._byteorder = 'big'
 
-        print("Reading IFDs");
+        if verbose:
+            print("Reading IFDs");
         self._ifdOffsets = self.getIFDOffsets()
 
         if (len(self._ifdOffsets) < 2):
@@ -330,7 +331,7 @@ class TiffParser(object):
     def getFirstIFD(self):
         offset = self.getFirstOffset()
         ifd = self.getIFD(offset)
-        print("First offset: " ,offset)
+        # print("First offset: " ,offset)
         return ifd
   
 
@@ -365,7 +366,7 @@ class TiffParser(object):
         data = self._fp.read(12)
         if data[0:4] in [b'II*\x00', b'MM\x00*']:
             # it's a TIFF file
-            print("TIFF format recognized in data[0:4]")
+            # print("TIFF format recognized in data[0:4]")
             self._fp.seek(0)
             endianOne = int.from_bytes(self._fp.read(1), byteorder='little')
             endianTwo = int.from_bytes(self._fp.read(1), byteorder='little')
