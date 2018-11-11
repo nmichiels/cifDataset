@@ -39,7 +39,7 @@ bool openFile(const std::string& filename){
 
 struct Diff {
     public:
-        Diff(std::ifstream& fp, int byteorder, const std::vector<long>& stripByteCounts, const std::vector<long>& stripOffsets) : _fp(fp), _byteorder(byteorder), stripByteCounts(stripByteCounts), stripOffsets(stripOffsets) {
+        Diff(std::ifstream& fp, int byteorder, ConstMapVeci& stripByteCounts, ConstMapVeci& stripOffsets) : _fp(fp), _byteorder(byteorder), stripByteCounts(stripByteCounts), stripOffsets(stripOffsets) {
                     index = -1;
                     offset = 0;
                     count = 0;
@@ -149,14 +149,14 @@ struct Diff {
         std::ifstream& _fp;
         int _byteorder;
 
-        const std::vector<long>& stripByteCounts;
-        const std::vector<long>& stripOffsets;
+        ConstMapVeci& stripByteCounts;
+        ConstMapVeci& stripOffsets;
 
 };
 
 
 
- void openGreyscaleBytes(int imageWidth, int imageHeight, int nchannels, int stripByteCounts, int stripOffsets,  MapMatrixf & uncompressed){
+ void openGreyscaleBytes(int imageWidth, int imageHeight, int nchannels, ConstMapVeci&  stripByteCounts, ConstMapVeci& stripOffsets,  MapMatrixf & uncompressed){
     // std::cout << "Start decoding greyscale bytes..." << std::endl;
     if (!opened){
         std::cout << "C++ ERROR: No file opened to read from." << std::endl;
@@ -165,10 +165,10 @@ struct Diff {
     // std::cout << "Uncompressed: " << uncompressed.rows() << ", " << uncompressed.cols() << std::endl;
     // std::cout << "Reading " << stripByteCounts << " bytes starting from " << stripOffsets << std::endl;
     // TODO: int to long may cause bugs
-    std::vector<long> stripByteCountsList = std::vector<long>(1, long(stripByteCounts));
-    std::vector<long> stripOffsetsList = std::vector<long>(1, long(stripOffsets));
+    // std::vector<long> stripByteCountsList = std::vector<long>(1, long(stripByteCounts[0]));
+    // std::vector<long> stripOffsetsList = std::vector<long>(1, long(stripOffsets[0]));
 
-    Diff diffs = Diff(fp, 0, stripByteCountsList, stripOffsetsList);
+    Diff diffs = Diff(fp, 0, stripByteCounts, stripOffsets);
 
 
 
@@ -256,21 +256,21 @@ unsigned char readByte(){
     return (unsigned char) value;
 }
 
-void openBitmaskBytes(int imageWidth, int imageHeight, int nchannels, int stripByteCounts, int stripOffsets,  MapMatrixf & uncompressed){
+void openBitmaskBytes(int imageWidth, int imageHeight, int nchannels, ConstMapVeci&  stripByteCounts, ConstMapVeci& stripOffsets,  MapMatrixf & uncompressed){
     if (!opened){
         std::cout << "C++ ERROR: No file opened to read from." << std::endl;
     }
 
-    std::vector<long> stripByteCountsList = std::vector<long>(1, long(stripByteCounts));
-    std::vector<long> stripOffsetsList = std::vector<long>(1, long(stripOffsets));
+    // std::vector<long> stripByteCountsList = std::vector<long>(1, long(stripByteCounts));
+    // std::vector<long> stripOffsetsList = std::vector<long>(1, long(stripOffsets));
 
     int widthAllChannels = imageWidth*nchannels;
 
     size_t off = 0;
-    for (int i=0; i<stripByteCountsList.size(); i++) {
+    for (int i=0; i<stripByteCounts.size(); i++) {
   
-        fp.seekg(stripOffsetsList[i]);
-        for (int j=0; j<stripByteCountsList[i]; j+=2) {
+        fp.seekg(stripOffsets[i]);
+        for (int j=0; j<stripByteCounts[i]; j+=2) {
             unsigned char value = readByte();
 
             int runLength = (readByte() & 0xFF)+1;

@@ -9,7 +9,7 @@
 #include <vector>
 
 bool openFile(const std::string& filename);
-void openGreyscaleBytes(int imageWidth, int imageHeight, int nchannels, int stripByteCounts, int stripOffsets,  MapMatrixf & uncompressed);
-void openBitmaskBytes(int imageWidth, int imageHeight, int nchannels, int stripByteCounts, int stripOffsets,  MapMatrixf & uncompressed);
+void openGreyscaleBytes(int imageWidth, int imageHeight, int nchannels, ConstMapVeci& stripByteCounts, ConstMapVeci& stripOffsets,  MapMatrixf & uncompressed);
+void openBitmaskBytes(int imageWidth, int imageHeight, int nchannels, ConstMapVeci&  stripByteCounts, ConstMapVeci& stripOffsets,  MapMatrixf & uncompressed);
 
 #endif

@@ -152,7 +152,7 @@ class FlowSightParser(object):
 
         data = np.zeros([imageHeight,imageWidth*self._channelCount], dtype=np.float32)
         # TODO: fix pass stripByteCounts and  stripOffsets as array
-        fsr.openGreyscaleBytes(imageWidth, imageHeight, self._channelCount, stripByteCounts[0], stripOffsets[0], data)
+        fsr.openGreyscaleBytes(imageWidth, imageHeight, self._channelCount, np.asarray(stripByteCounts), np.asarray(stripOffsets), data)
         
         return data
     
@@ -169,7 +169,7 @@ class FlowSightParser(object):
 
         data = np.zeros([imageHeight,imageWidth*self._channelCount], dtype=np.float32)
         # TODO: fix pass stripByteCounts and  stripOffsets as array
-        fsr.openBitmaskBytes(imageWidth, imageHeight, self._channelCount, stripByteCounts[0], stripOffsets[0], data)
+        fsr.openBitmaskBytes(imageWidth, imageHeight, self._channelCount, np.asarray(stripByteCounts), np.asarray(stripOffsets), data)
         
         return data
 
