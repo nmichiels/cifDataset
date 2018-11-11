@@ -144,3 +144,34 @@ cdef np.ndarray[short, ndim=2] ndarray_copy_short_F(const short *data, long rows
     dtype = 'short'
     cdef int itemsize = np.dtype(dtype).itemsize
     return np.copy(as_strided(np.asarray(mem_view, dtype=dtype, order="F"), strides=[row_stride*itemsize, col_stride*itemsize]))
+
+
+
+
+@cython.boundscheck(False)
+cdef np.ndarray[long, ndim=2] ndarray_long_C(long *data, long rows, long cols, long row_stride, long col_stride):
+    cdef long[:,:] mem_view = <long[:rows,:cols]>data
+    dtype = 'long'
+    cdef int itemsize = np.dtype(dtype).itemsize
+    return as_strided(np.asarray(mem_view, dtype=dtype, order="C"), strides=[row_stride*itemsize, col_stride*itemsize])
+
+@cython.boundscheck(False)
+cdef np.ndarray[long, ndim=2] ndarray_long_F(long *data, long rows, long cols, long row_stride, long col_stride):
+    cdef long[::1,:] mem_view = <long[:rows:1,:cols]>data
+    dtype = 'long'
+    cdef int itemsize = np.dtype(dtype).itemsize
+    return as_strided(np.asarray(mem_view, dtype=dtype, order="F"), strides=[row_stride*itemsize, col_stride*itemsize])
+
+@cython.boundscheck(False)
+cdef np.ndarray[long, ndim=2] ndarray_copy_long_C(const long *data, long rows, long cols, long row_stride, long col_stride):
+    cdef long[:,:] mem_view = <long[:rows,:cols]>data
+    dtype = 'long'
+    cdef int itemsize = np.dtype(dtype).itemsize
+    return np.copy(as_strided(np.asarray(mem_view, dtype=dtype, order="C"), strides=[row_stride*itemsize, col_stride*itemsize]))
+
+@cython.boundscheck(False)
+cdef np.ndarray[long, ndim=2] ndarray_copy_long_F(const long *data, long rows, long cols, long row_stride, long col_stride):
+    cdef long[::1,:] mem_view = <long[:rows:1,:cols]>data
+    dtype = 'long'
+    cdef int itemsize = np.dtype(dtype).itemsize
+    return np.copy(as_strided(np.asarray(mem_view, dtype=dtype, order="F"), strides=[row_stride*itemsize, col_stride*itemsize]))

@@ -100,6 +100,32 @@ inline PyArrayObject *_ndarray_copy<bool>(const bool *data, long rows, long cols
         return ndarray_copy_bool_F(data, rows, cols, inner_stride>0?inner_stride:1, outer_stride>0?outer_stride:rows);
 }
 
+
+
+template <>
+inline PyArrayObject *_ndarray_view<long>(long *data, long rows, long cols, bool is_row_major, long outer_stride, long inner_stride) {
+    if (is_row_major) {
+        // Eigen row-major mode: row_stride=outer_stride, and col_stride=inner_stride
+        // If no stride is given, the row_stride is set to the number of columns.
+        return ndarray_long_C(data, rows, cols, outer_stride>0?outer_stride:cols, inner_stride>0?inner_stride:1);
+    } else {
+        // Eigen column-major mode: row_stride=outer_stride, and col_stride=inner_stride
+        // If no stride is given, the cow_stride is set to the number of rows.
+        return ndarray_long_F(data, rows, cols, inner_stride>0?inner_stride:1, outer_stride>0?outer_stride:rows);
+    }
+}
+
+template <>
+inline PyArrayObject *_ndarray_copy<long>(const long *data, long rows, long cols, bool is_row_major, long outer_stride, long inner_stride) {
+    if (is_row_major)
+        return ndarray_copy_long_C(data, rows, cols, outer_stride>0?outer_stride:cols, inner_stride>0?inner_stride:1);
+    else
+        return ndarray_copy_long_F(data, rows, cols, inner_stride>0?inner_stride:1, outer_stride>0?outer_stride:rows);
+}
+
+
+
+
 template <>
 inline PyArrayObject *_ndarray_view<short>(short *data, long rows, long cols, bool is_row_major, long outer_stride, long inner_stride) {
     if (is_row_major) {

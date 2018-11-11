@@ -39,7 +39,7 @@ bool openFile(const std::string& filename){
 
 struct Diff {
     public:
-        Diff(std::ifstream& fp, int byteorder, ConstMapVeci& stripByteCounts, ConstMapVeci& stripOffsets) : _fp(fp), _byteorder(byteorder), stripByteCounts(stripByteCounts), stripOffsets(stripOffsets) {
+        Diff(std::ifstream& fp, int byteorder, ConstMapVecl& stripByteCounts, ConstMapVecl& stripOffsets) : _fp(fp), _byteorder(byteorder), stripByteCounts(stripByteCounts), stripOffsets(stripOffsets) {
                     index = -1;
                     offset = 0;
                     count = 0;
@@ -122,7 +122,7 @@ struct Diff {
             }
             _fp.seekg(stripOffsets[index]);
             offset = 0;
-            count = (int)stripByteCounts[index];
+            count = (long)stripByteCounts[index];
             }
             _fp.read(&currentByte, 1);
             offset++;
@@ -138,8 +138,8 @@ struct Diff {
 
     public:
         int index = -1;
-        int offset = 0;
-        int count = 0;
+        long offset = 0;
+        long count = 0;
         char currentByte = 0;
         int nibbleIdx = 2;
         short value = 0;
@@ -149,14 +149,14 @@ struct Diff {
         std::ifstream& _fp;
         int _byteorder;
 
-        ConstMapVeci& stripByteCounts;
-        ConstMapVeci& stripOffsets;
+        ConstMapVecl& stripByteCounts;
+        ConstMapVecl& stripOffsets;
 
 };
 
 
 
- void openGreyscaleBytes(int imageWidth, int imageHeight, int nchannels, ConstMapVeci&  stripByteCounts, ConstMapVeci& stripOffsets,  MapMatrixf & uncompressed){
+ void openGreyscaleBytes(int imageWidth, int imageHeight, int nchannels, ConstMapVecl&  stripByteCounts, ConstMapVecl& stripOffsets,  MapMatrixf & uncompressed){
     // std::cout << "Start decoding greyscale bytes..." << std::endl;
     if (!opened){
         std::cout << "C++ ERROR: No file opened to read from." << std::endl;
@@ -256,7 +256,7 @@ unsigned char readByte(){
     return (unsigned char) value;
 }
 
-void openBitmaskBytes(int imageWidth, int imageHeight, int nchannels, ConstMapVeci&  stripByteCounts, ConstMapVeci& stripOffsets,  MapMatrixf & uncompressed){
+void openBitmaskBytes(int imageWidth, int imageHeight, int nchannels, ConstMapVecl&  stripByteCounts, ConstMapVecl& stripOffsets,  MapMatrixf & uncompressed){
     if (!opened){
         std::cout << "C++ ERROR: No file opened to read from." << std::endl;
     }
@@ -270,7 +270,7 @@ void openBitmaskBytes(int imageWidth, int imageHeight, int nchannels, ConstMapVe
     for (int i=0; i<stripByteCounts.size(); i++) {
   
         fp.seekg(stripOffsets[i]);
-        for (int j=0; j<stripByteCounts[i]; j+=2) {
+        for (long j=0; j<stripByteCounts[i]; j+=2) {
             unsigned char value = readByte();
 
             int runLength = (readByte() & 0xFF)+1;

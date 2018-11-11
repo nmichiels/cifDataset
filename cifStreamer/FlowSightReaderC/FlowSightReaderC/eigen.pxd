@@ -18,6 +18,10 @@ ctypedef fused DenseTypeShort:
     ConstVecs
     Matrixs
     Vecs
+    ConstMatrixl
+    ConstVecl
+    Matrixl
+    Vecl
     ConstMatrixf
     ConstVecf
     Matrixf
@@ -70,6 +74,18 @@ cdef extern from "eigen_cpp.h":
         pass
 
     cdef cppclass Veci(PlainObjectBase):
+        pass
+
+    cdef cppclass ConstMatrixl(PlainObjectBase):
+        pass
+
+    cdef cppclass ConstVecl(PlainObjectBase):
+        pass
+
+    cdef cppclass Matrixl(PlainObjectBase):
+        pass
+
+    cdef cppclass Vecl(PlainObjectBase):
         pass
 
     cdef cppclass ConstMatrixs(PlainObjectBase):

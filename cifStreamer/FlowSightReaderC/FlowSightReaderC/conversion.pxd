@@ -26,3 +26,8 @@ cdef api np.ndarray[short, ndim=2] ndarray_short_C(short *data, long rows, long 
 cdef api np.ndarray[short, ndim=2] ndarray_short_F(short *data, long rows, long cols, long outer_stride, long inner_stride)
 cdef api np.ndarray[short, ndim=2] ndarray_copy_short_C(const short *data, long rows, long cols, long outer_stride, long inner_stride)
 cdef api np.ndarray[short, ndim=2] ndarray_copy_short_F(const short *data, long rows, long cols, long outer_stride, long inner_stride)
+
+cdef api np.ndarray[long, ndim=2] ndarray_long_C(long *data, long rows, long cols, long outer_stride, long inner_stride)
+cdef api np.ndarray[long, ndim=2] ndarray_long_F(long *data, long rows, long cols, long outer_stride, long inner_stride)
+cdef api np.ndarray[long, ndim=2] ndarray_copy_long_C(const long *data, long rows, long cols, long outer_stride, long inner_stride)
+cdef api np.ndarray[long, ndim=2] ndarray_copy_long_F(const long *data, long rows, long cols, long outer_stride, long inner_stride)
