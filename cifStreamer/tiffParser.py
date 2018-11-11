@@ -97,6 +97,7 @@ class TiffParser(object):
         if verbose:
             print("Reading IFDs");
         self._ifdOffsets = self.getIFDOffsets()
+        self._numCells = len(self._ifdOffsets) -1 # first one is not a cell
 
         if (len(self._ifdOffsets) < 2):
             print("No IFDs found");

@@ -54,7 +54,8 @@ class FlowSightParser(object):
         root = ET.fromstring(xml)
         imagingNodes = root.find("Imaging");
         ObjectsToAcquireNodes = imagingNodes.find("ObjectsToAcquire");
-        self._numCells = int(ObjectsToAcquireNodes.text)
+        # self._numCells = int(ObjectsToAcquireNodes.text)
+        self._numCells = self._tiffParser._numCells
 
         ChannelsInUseIndicatorNodes = imagingNodes.find("ChannelInUseIndicators_0_11");
         
