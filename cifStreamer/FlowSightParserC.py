@@ -30,12 +30,16 @@ class FlowSightParser(object):
         pass
     
     def loadFile(self,file):
+        if not fsr.openFile(file.encode('UTF-8')):
+            return False
+
         self._fp = builtins.open(file, "r+b")
-        self.loadFP(self._fp)
+        self._tiffParser = TiffParser(self._fp) #self.loadFP(self._fp)
+        return True
         
-    def loadFP(self, fp):
-        self._fp = fp
-        self._tiffParser = TiffParser(self._fp)
+    # def loadFP(self, fp):
+    #     self._fp = fp
+    #     self._tiffParser = TiffParser(self._fp)
 
     
     def loadMetaData(self, verbose=False):
@@ -116,7 +120,8 @@ class FlowSightParser(object):
 
         elif (compression == IFD.BITMASK_COMPRESSION.value):
             # print("Loading Mask Data")
-            data = self.openBitmaskBytes(ifd, imageWidth, imageHeight, self._channelCount)
+            data = self.openBitmaskBytesC(ifd, imageWidth, imageHeight, self._channelCount)
+            # data = self.openBitmaskBytes(ifd, imageWidth, imageHeight, self._channelCount)
         else:
             print("Unknown Amnis Compression")
             return None
@@ -151,6 +156,24 @@ class FlowSightParser(object):
         
         return data
     
+
+    def openBitmaskBytesC(self, ifd, imageWidth, imageHeight, nchannels):
+        stripByteCounts = ifd[IFD.STRIP_BYTE_COUNTS.value]
+        stripOffsets = ifd[IFD.STRIP_OFFSETS.value]
+
+        if type(stripByteCounts) is list:
+            pass
+        else:
+            stripByteCounts = [stripByteCounts]
+            stripOffsets = [stripOffsets]
+
+        data = np.zeros([imageHeight,imageWidth*self._channelCount], dtype=np.float32)
+        # TODO: fix pass stripByteCounts and  stripOffsets as array
+        fsr.openBitmaskBytes(imageWidth, imageHeight, self._channelCount, stripByteCounts[0], stripOffsets[0], data)
+        
+        return data
+
+
 
     def openBitmaskBytes(self, ifd, imageWidth, imageHeight, nchannels):
         stripByteCounts = ifd[IFD.STRIP_BYTE_COUNTS.value]

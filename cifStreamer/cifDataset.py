@@ -8,10 +8,14 @@ class CIFDataset(object):
       
         print('Initializing Dataset: ' + cifFile)
         
-        fp = builtins.open(cifFile, "r+b")
 
         self._flowSightParser = FlowSightParser()
-        self._flowSightParser.loadFP(fp)
+        if not self._flowSightParser.loadFile(cifFile):
+            print("ERROR (CIFDataset): Could not open file \"", cifFile, "\"")
+            self._nimages = 0
+            self._nchannels = 0
+            return
+
         self._flowSightParser.loadMetaData(verbose=False)
 
         self._nimages = self._flowSightParser._numCells

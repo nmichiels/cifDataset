@@ -16,6 +16,26 @@ using namespace std ;
 std::ifstream fp;
 bool opened = false;
 
+bool openFilePointer(const std::string& fileName){
+    std::cout << "Opening " << fileName << std::endl;
+    
+	size_t size = 0; // here
+    fp.open(fileName , ios::in|ios::binary|ios::ate );
+    if (!fp.is_open()){
+        std::cout << "C++ Error: Failed to open input file." << std::endl;
+        return false;
+    }
+
+    opened = true;
+    return true;
+}
+
+
+bool openFile(const std::string& filename){
+    return openFilePointer(filename);
+}
+
+
 
 struct Diff {
     public:
@@ -134,24 +154,12 @@ struct Diff {
 
 };
 
-bool openFilePointer(const std::string& fileName){
-    std::cout << "Opening " << fileName << std::endl;
-    
-	size_t size = 0; // here
-    fp.open(fileName , ios::in|ios::binary|ios::ate );
-    if (!fp.is_open()){
-        std::cout << "C++ Error: Failed to open input file." << std::endl;
-        return false;
-    }
 
-    opened = true;
-    return true;
-}
 
  void openGreyscaleBytes(int imageWidth, int imageHeight, int nchannels, int stripByteCounts, int stripOffsets,  MapMatrixf & uncompressed){
     // std::cout << "Start decoding greyscale bytes..." << std::endl;
     if (!opened){
-        openFilePointer("/home/nick/ImmCyte/code/data/20180517_Nuclear_stain/d1714 all CD8.cif");
+        std::cout << "C++ ERROR: No file opened to read from." << std::endl;
     }
     // std::cout << "Target: " << imageHeight << ", " << imageWidth << std::endl;
     // std::cout << "Uncompressed: " << uncompressed.rows() << ", " << uncompressed.cols() << std::endl;
@@ -242,4 +250,43 @@ bool openFilePointer(const std::string& fileName){
     // std::cout << "maxV: " << maxV << std::endl;
     // std::cout << "minV: " << minV << std::endl;
 }
+unsigned char readByte(){
+    char value = 0;
+    fp.read(&value, 1);
+    return (unsigned char) value;
+}
 
+void openBitmaskBytes(int imageWidth, int imageHeight, int nchannels, int stripByteCounts, int stripOffsets,  MapMatrixf & uncompressed){
+    if (!opened){
+        std::cout << "C++ ERROR: No file opened to read from." << std::endl;
+    }
+
+    std::vector<long> stripByteCountsList = std::vector<long>(1, long(stripByteCounts));
+    std::vector<long> stripOffsetsList = std::vector<long>(1, long(stripOffsets));
+
+    int widthAllChannels = imageWidth*nchannels;
+
+    size_t off = 0;
+    for (int i=0; i<stripByteCountsList.size(); i++) {
+  
+        fp.seekg(stripOffsetsList[i]);
+        for (int j=0; j<stripByteCountsList[i]; j+=2) {
+            unsigned char value = readByte();
+
+            int runLength = (readByte() & 0xFF)+1;
+            if (off + runLength > uncompressed.size()) {
+                std::cout << "C++ ERROR (openBitmaskBytes): Unexpected buffer overrun encountered when decompressing bitmask data" <<std::endl;
+            }
+            for (unsigned b = off; b < off+runLength; ++b)
+                uncompressed(b) = value;
+   
+
+            off += runLength;
+        }
+       
+    }
+    if (off != uncompressed.size()) 
+        std::cout << "C++ ERROR (openBitmaskBytes): Buffer shortfall encountered when decompressing bitmask data" << std::endl;
+
+    uncompressed = uncompressed / 0xFF;  // Scale with maximum 8bit value
+}

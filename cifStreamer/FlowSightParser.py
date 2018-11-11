@@ -28,11 +28,12 @@ class FlowSightParser(object):
     
     def loadFile(self,file):
         self._fp = builtins.open(file, "r+b")
-        self.loadFP(self._fp)
+        self._tiffParser = TiffParser(self._fp) #self.loadFP(self._fp)
+        return True
         
-    def loadFP(self, fp):
-        self._fp = fp
-        self._tiffParser = TiffParser(self._fp)
+    # def loadFP(self, fp):
+    #     self._fp = fp
+    #     self._tiffParser = TiffParser(self._fp)
 
     
     def loadMetaData(self, verbose=False):
