@@ -1,67 +1,7 @@
 import numpy as np
 import sys
 
-class TiffConstants:
-
-    # /** The number of bytes in each IFD entry. */
-    BYTES_PER_ENTRY = int(12)
-
-    # /** The number of bytes in each IFD entry of a BigTIFF file. */
-    BIG_TIFF_BYTES_PER_ENTRY = int(20)
-
-    # // TIFF header constants
-    MAGIC_NUMBER = int(42)
-    BIG_TIFF_MAGIC_NUMBER = int(43)
-    LITTLE = int("0x49",16)
-    BIG = int("0x4d",16)
-
-
-
-
-IFDType =  {1: 2, 2: 1, 3: 2, 4: 4, 5: 8, 6: 1, 7: 1, 8: 2, 9: 4, 10: 8, 11: 4, 12: 8, 13: 4, 16: 8, 17: 8, 18: 8}
-IFDTypeName =  {1: "BYTE", 2: "ASCII", 3: "SHORT", 4: "LONG", 5: "RATIONAL", 6: "SBYTE", 7: "UNDEFINED", 8: "SSHORT", 9: "SLONG", 10: "SRATIONAL", 11: "FLOAT", 12: "DOUBLE", 13: "IFD", 16: "LONG8", 17: "SLONG8", 18: "IFD8"}
-
-from enum import Enum
-class IFD(Enum):
-    NEW_SUBFILE_TYPE = 254
-    IMAGE_WIDTH = 256
-    IMAGE_LENGTH = 257
-    BITS_PER_SAMPLE = 258
-    COMPRESSION = 259
-    PHOTOMETRIC_INTERPRETATION = 262
-    FILL_ORDER = 266
-    STRIP_OFFSETS = 273
-    SAMPLES_PER_PIXEL = 277
-    ROWS_PER_STRIP = 278
-    STRIP_BYTE_COUNTS = 279
-    X_RESOLUTION = 282
-    Y_RESOLUTION = 283
-    PLANAR_CONFIGURATION = 284
-    COLOR_MAP = 320
-    RESOLUTION_UNIT = 296
-    DATE_TIME = 306
-
-    # Amnis specific
-    CHANNEL_COUNT_TAG = 33000
-    ACQUISITION_TIME_TAG = 33004
-    CHANNEL_NAMES_TAG = 33007
-    CHANNEL_DESCS_TAG = 33008
-    METADATA_XML_TAG = 33027
-    GREYSCALE_COMPRESSION = 30817
-    BITMASK_COMPRESSION = 30818
-    
-    
-    @classmethod
-    def has_value(cls, value):
-        return any(value == item.value for item in cls)
-
-class TiffIFDEntry(object):
-        def __init__(self, entryTag, entryType, valueCount, valueOffset):
-            self._entryTag = entryTag
-            self._entryType = entryType
-            self._valueCount = valueCount
-            self._valueOffset = valueOffset
-
+from cifDataset.cifStreamer.tiffConstants import *
 
 class TiffParser(object):
     
@@ -94,6 +34,7 @@ class TiffParser(object):
         else:
             self._byteorder = 'big'
 
+        print("BYTE: ", self._byteorder)
         if verbose:
             print("Reading IFDs");
         self._ifdOffsets = self.getIFDOffsets()
@@ -332,7 +273,7 @@ class TiffParser(object):
     def getFirstIFD(self):
         offset = self.getFirstOffset()
         ifd = self.getIFD(offset)
-        # print("First offset: " ,offset)
+        print("First offset: " ,offset)
         return ifd
   
 
@@ -351,6 +292,7 @@ class TiffParser(object):
         if (self._bigTiff):
             bytesPerEntry = TiffConstants.BIG_TIFF_BYTES_PER_ENTRY
         offset = self.getFirstOffset()
+        # print('offset', offset)
         offsets = []
         while (offset > 0 and offset < self._length):
             self._fp.seek(offset);
@@ -365,6 +307,9 @@ class TiffParser(object):
     def checkHeader(self):
         self._fp.seek(0)
         data = self._fp.read(12)
+        # t = int.from_bytes(data[0:4], byteorder='little')
+
+        # print(data[0:4])
         if data[0:4] in [b'II*\x00', b'MM\x00*']:
             # it's a TIFF file
             # print("TIFF format recognized in data[0:4]")
@@ -376,6 +321,7 @@ class TiffParser(object):
             bigEndian = endianOne == TiffConstants.BIG and endianTwo == TiffConstants.BIG
 
             if (not littleEndian and not bigEndian):
+                print("TiffParser:checkHeader(): Unknown Endian Format")
                 return None
             
             byteorder = 'little'
@@ -385,9 +331,10 @@ class TiffParser(object):
             magic = int.from_bytes(self._fp.read(2), byteorder)
             self._bigTiff = magic == TiffConstants.BIG_TIFF_MAGIC_NUMBER
             if (magic != TiffConstants.MAGIC_NUMBER and  magic != TiffConstants.BIG_TIFF_MAGIC_NUMBER):
+                print("TiffParser:checkHeader(): Magic Number")
                 return None
-
+            print("self._bigTiff: ", self._bigTiff)
         
             return littleEndian
-
-
+        print("TiffParser:checkHeader(): First bytes are not a Tiff header")
+        

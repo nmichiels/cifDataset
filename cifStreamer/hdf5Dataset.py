@@ -50,6 +50,9 @@ class HDF5Dataset(object):
         self._current_image_ID += 1
         return image, mask
 
+    def skip(self, n):
+        self._current_image_ID += n*2
+        
     # set dataset back to first image
     def reset(self):
         self._current_image_ID = 0
