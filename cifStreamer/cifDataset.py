@@ -48,6 +48,10 @@ class CIFDataset(object):
         self._current_image_ID += 2
         return image
 
+    
+    def skip(self, n):
+        self._current_image_ID += n*2
+
     # set dataset back to first image
     def reset(self):
         self._current_image_ID = 1
