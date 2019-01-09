@@ -18,7 +18,7 @@ class CIFDataset(object):
 
         self._flowSightParser.loadMetaData(verbose=False)
 
-        self._nimages = self._flowSightParser._numCells
+        self._nimages = int(self._flowSightParser._numCells / 2)
         self._nchannels = self._flowSightParser._channelCount
         print("Image Count: " + repr(self._nimages))
         print("Channel Count: " + repr(self._nchannels))
@@ -33,12 +33,16 @@ class CIFDataset(object):
         # todo
 
     def nextImage(self):
+        if (self._current_image_ID >self._nimages*2):
+            return None, None
         image = self._flowSightParser.openIFDData(self._current_image_ID , verbose=False)
         mask = self._flowSightParser.openIFDData(self._current_image_ID+1 , verbose=False)
         self._current_image_ID += 2
         return image, mask
 
     def nextImage_nomask(self):
+        if (self._current_image_ID >self._nimages*2):
+            return None
         image = self._flowSightParser.openIFDData(self._current_image_ID , verbose=False)
         # mask = self._flowSightParser.openIFDData(self._current_image_ID+1 , verbose=False)
         self._current_image_ID += 2
@@ -50,7 +54,7 @@ class CIFDataset(object):
 
     # check if end of dataset
     def eod(self):
-        if (self._current_image_ID >= self._nimages+1):
+        if (self._current_image_ID >= self._nimages*2+1):
             return True
         else:
             return False

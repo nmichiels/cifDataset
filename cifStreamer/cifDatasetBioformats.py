@@ -22,7 +22,7 @@ class CIFDataset(object):
             # print("test", test)
     
 
-            self._nimages = jmd.getImageCount()
+            self._nimages = int(jmd.getImageCount() / 2)
             self._nchannels = jmd.getChannelCount(0)
             print("Image Count: " + repr(self._nimages))
             print("Channel Count: " + repr(self._nchannels))
@@ -58,7 +58,7 @@ class CIFDataset(object):
 
     # check if end of dataset
     def eod(self):
-        if (self._current_image_ID >= self._nimages):
+        if (self._current_image_ID >= self._nimages*2):
             return True
         else:
             return False
