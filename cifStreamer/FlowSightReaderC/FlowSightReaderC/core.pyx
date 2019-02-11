@@ -27,11 +27,11 @@ def openGreyscaleBytes(int imageWidth, int imageHeight, int nchannels, np.ndarra
     print("WARNING openGreyscaleBytes(): Type of uncompressed is ", uncompressed.dtype, "... expecting float32.")
  
   if (stripByteCounts.dtype != np.int64):
-    print("WARNING openBitmaskBytes(): Type of stripByteCounts is ", stripByteCounts.dtype, "... expecting int64.")
+    #print("WARNING openBitmaskBytes(): Type of stripByteCounts is ", stripByteCounts.dtype, "... expecting int64.")
     stripByteCounts = stripByteCounts.astype(dtype=np.int64, order='C', copy=False)
 
   if (stripOffsets.dtype != np.int64):
-    print("WARNING openBitmaskBytes(): Type of stripOffsets is ", stripOffsets.dtype, "... expecting int64.")
+    #print("WARNING openBitmaskBytes(): Type of stripOffsets is ", stripOffsets.dtype, "... expecting int64.")
     stripOffsets = stripOffsets.astype(dtype=np.int64, order='C', copy=False)
 
   c_openGreyscaleBytes(imageWidth, imageHeight, nchannels, Map[ConstVecl](stripByteCounts), Map[ConstVecl](stripOffsets), Map[Matrixf](uncompressed))
@@ -45,11 +45,11 @@ def openBitmaskBytes(int imageWidth, int imageHeight, int nchannels, np.ndarray 
     print("WARNING openBitmaskBytes(): Type of uncompressed is ", uncompressed.dtype, "... expecting float32.")
 
   if (stripByteCounts.dtype != np.int64):
-    print("WARNING openBitmaskBytes(): Type of stripByteCounts is ", stripByteCounts.dtype, "... expecting int64.")
+    #print("WARNING openBitmaskBytes(): Type of stripByteCounts is ", stripByteCounts.dtype, "... expecting int64.")
     stripByteCounts = stripByteCounts.astype(dtype=np.int64, order='C', copy=False)
 
   if (stripOffsets.dtype != np.int64):
-    print("WARNING openBitmaskBytes(): Type of stripOffsets is ", stripOffsets.dtype, "... expecting int64.")
+    #print("WARNING openBitmaskBytes(): Type of stripOffsets is ", stripOffsets.dtype, "... expecting int64.")
     stripOffsets = stripOffsets.astype(dtype=np.int64, order='C', copy=False)
  
   c_openBitmaskBytes(imageWidth, imageHeight, nchannels, Map[ConstVecl](stripByteCounts), Map[ConstVecl](stripOffsets), Map[Matrixf](uncompressed))
