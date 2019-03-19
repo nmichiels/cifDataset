@@ -1,0 +1,12 @@
+__pycache__/
+build/
+**/__pycache__/
+*.pyc
+**/*.pyc
+**/*.so
+**/*.o
+**/__pycache__/
+FlowSightReaderC/conversion_api.h
+FlowSightReaderC/conversion.cpp
+FlowSightReaderC/core.cpp
+FlowSightReaderC/eigen.cpp
