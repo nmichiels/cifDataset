@@ -23,7 +23,7 @@ class NPDataset(Dataset):
   def labels(self):
     return self._labels
           
-  def next_batch(self, batch_size):
+  def next_batch(self, batch_size, targetResolution = None):
     """Return the next `batch_size` examples from this data set."""
     start = self._index_in_epoch
     self._index_in_epoch += batch_size

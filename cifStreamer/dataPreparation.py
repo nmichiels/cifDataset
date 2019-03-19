@@ -1,7 +1,7 @@
 import numpy as np
 import math
 
-# def __pad_or_crop_zero(image, image_size):
+# def pad_or_crop_zero(image, image_size):
 #     bigger = max(image.shape[0], image.shape[1], image_size)
 
 #     pad_x = float(bigger - image.shape[0])
@@ -23,7 +23,7 @@ import math
 #         return temp_image[int((temp_image.shape[0] - image_size)/2):int((temp_image.shape[0] + image_size)/2),int((temp_image.shape[1] - image_size)/2):int((temp_image.shape[1] + image_size)/2)]
 
    
-def __pad_or_crop(image, target_size, mode = 'symmetric', constant_values=(0)):
+def pad_or_crop(image, target_size, mode = 'symmetric', constant_values=(0)):
     bigger = max(image.shape[0], image.shape[1], target_size)
 
     pad_x = float(bigger - image.shape[0])
@@ -47,7 +47,7 @@ def __pad_or_crop(image, target_size, mode = 'symmetric', constant_values=(0)):
 
 
 
-# def __pad_or_crop(image, image_size):
+# def pad_or_crop(image, image_size):
 #     bigger = max(image.shape[0], image.shape[1], image_size)
 
 #     pad_x = float(bigger - image.shape[0])

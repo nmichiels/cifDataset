@@ -4,8 +4,8 @@ import sys
 import numpy as np
 from cifStreamer.hdf5Dataset import HDF5Dataset
 # from cifStreamer.cifDataset import CIFDataset
-from cifStreamer.dataPreparation import __pad_or_crop
-# from cifStreamer.dataPreparation import __pad_or_crop_zero
+from cifStreamer.dataPreparation import pad_or_crop
+# from cifStreamer.dataPreparation import pad_or_crop_zero
 
 if (len(sys.argv) < 4 or len(sys.argv) > 7):
     print("Wrong parameters. Use \"", sys.argv[0], "inputFile outputNumpy targetSize [outputMask] [numImages] [channels]\"")
@@ -59,8 +59,8 @@ def next_batch(dataset, image_size, batch_size, channels):
             img = image[:,:,channel]
             msk = mask[:,:,channel]
 
-            batch[i][:,:,idx] = __pad_or_crop(img, image_size, 'symmetric')# __pad_or_crop(img, image_size, 'constant', constant_values=(0))
-            batch_mask[i][:,:,idx] = __pad_or_crop(msk, image_size, 'symmetric')# __pad_or_crop(img, image_size, 'constant', constant_values=(0))
+            batch[i][:,:,idx] = pad_or_crop(img, image_size, 'symmetric')# pad_or_crop(img, image_size, 'constant', constant_values=(0))
+            batch_mask[i][:,:,idx] = pad_or_crop(msk, image_size, 'symmetric')# pad_or_crop(img, image_size, 'constant', constant_values=(0))
             # print (imgCropped)
     return batch, batch_mask
 

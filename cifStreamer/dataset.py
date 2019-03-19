@@ -9,7 +9,7 @@ class Dataset(object):
         self._index_in_epoch = 0
 
       
-    def nextBatch(self, batch_size):
+    def nextBatch(self, batch_size, image_size = None):
         raise NotImplementedError()
 
 
@@ -18,9 +18,13 @@ class Dataset(object):
 
     def skip(self, n):
         self._index_in_epoch += n
+        if self._index_in_epoch > self._num_examples:
+            self._epochs_done += 1
+            self._index_in_epoch = 0
 
     def reset(self):
             self._index_in_epoch = 0
+            self._epochs_done = 0
 
     @property
     def num_classes(self):
@@ -40,7 +44,7 @@ class Dataset(object):
 
     # check if end of dataset
     def eod(self):
-        if (self._index_in_epoch >= self._num_examples):
+        if (self._index_in_epoch >= self._num_examples or self._epochs_done > 0):
             return True
         else:
             return False

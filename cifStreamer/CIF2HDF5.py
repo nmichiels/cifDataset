@@ -1,58 +1,13 @@
 from .hdf5Dataset import HDF5Dataset
 from .cifDataset import CIFDataset
 # from .cifDatasetBioformats import CIFDataset
-from .dataPreparation import __pad_or_crop
-# from dataset.dataPreparation import __pad_or_crop_zero
+from .dataPreparation import pad_or_crop
+# from dataset.dataPreparation import pad_or_crop_zero
 
 import numpy as np
 import h5py
 import sys
 
-
-
-
-def next_batch_nomask(dataset, image_size, batch_size):
-    
-    batch = np.ndarray(shape=(batch_size, image_size,image_size, dataset.numberOfChannels()))
-    # batch_mask = np.ndarray(shape=(batch_size, image_size,image_size, dataset.numberOfChannels()))
-
-    for i in range(0,batch_size):
-        image = dataset.nextImage_nomask()
-
-        # if (i % 100 == 0):
-        #     print(i)
-
-        for channel in range(image.shape[-1]):
-            img = image[:,:,channel]
-
-            batch[i][:,:,channel] = __pad_or_crop(img, image_size, 'symmetric')# __pad_or_crop(img, image_size, 'symmetric', constant_values=(0))
-            
-            # print (imgCropped)
-    return batch
-
-
-
-
-
-def next_batch(dataset, image_size, batch_size):
-    
-    batch = np.ndarray(shape=(batch_size, image_size,image_size, dataset.numberOfChannels()))
-    batch_mask = np.ndarray(shape=(batch_size, image_size,image_size, dataset.numberOfChannels()))
-
-    for i in range(0,batch_size):
-        image, mask = dataset.nextImage()
-
-        # if (i % 100 == 0):
-        #     print(i)
-
-        for channel in range(image.shape[-1]):
-            img = image[:,:,channel]
-            msk = mask[:,:,channel]
-
-            batch[i][:,:,channel] = __pad_or_crop(img, image_size, 'symmetric')# __pad_or_crop(img, image_size, 'symmetric', constant_values=(0))
-            batch_mask[i][:,:,channel] = __pad_or_crop(msk, image_size, 'symmetric')# __pad_or_crop(img, image_size, 'symmetric', constant_values=(0))
-            # print (imgCropped)
-    return batch, batch_mask
 
 
 def convertCIF2HDF5(inputFile, outputFile, img_size, channelsString='', batchSize=1, chunkSize=10):
@@ -67,7 +22,7 @@ def convertCIF2HDF5(inputFile, outputFile, img_size, channelsString='', batchSiz
         # grp = hdf5.create_group("raw")
 
         
-        channels = np.arange(dataset.numberOfChannels())
+        channels = np.arange(dataset.num_channels)
         if (channelsString):
             channels = channelsString.split(",")
             channels = np.asarray(channels, dtype=int, order=None)
@@ -84,7 +39,7 @@ def convertCIF2HDF5(inputFile, outputFile, img_size, channelsString='', batchSiz
 
         i = 0
         while (not dataset.eod()):
-            data, mask = next_batch(dataset, img_size, batchSize)
+            data, mask = dataset.nextBatch(batchSize, img_size)
             if (channelsString):
                 data = data[:,:,:,channels]
                 mask = mask[:,:,:,channels]
@@ -101,7 +56,7 @@ def convertCIF2HDF5(inputFile, outputFile, img_size, channelsString='', batchSiz
             imageCounter += batchSize
             hdf5.flush()
             if (i % 10 == 0):
-                sys.stdout.write("\rConverting image %i / %i" % (i,dataset.numberOfImages()/2))
+                sys.stdout.write("\rConverting image %i / %i" % (i,dataset.num_examples))
                 sys.stdout.flush()
             i = i+1
 
@@ -128,7 +83,7 @@ def convertCIF2HDF5_nomask(inputFile, outputFile, img_size, channelsString='', b
         # grp = hdf5.create_group("raw")
 
         
-        channels = np.arange(dataset.numberOfChannels())
+        channels = np.arange(dataset.num_channels)
         if (channelsString):
             channels = channelsString.split(",")
             channels = np.asarray(channels, dtype=int, order=None)
@@ -145,7 +100,7 @@ def convertCIF2HDF5_nomask(inputFile, outputFile, img_size, channelsString='', b
 
         i = 0
         while (not dataset.eod()):
-            data = next_batch_nomask(dataset, img_size, batchSize)
+            data = dataset.nextBatch_nomask(batchSize, img_size)
             if (channelsString):
                 data = data[:,:,:,channels]
 
@@ -157,7 +112,7 @@ def convertCIF2HDF5_nomask(inputFile, outputFile, img_size, channelsString='', b
             i = i+1
             if (i % 50 == 0):
                 hdf5.flush()
-                sys.stdout.write("\rConverting image %i / %i" % (i,dataset.numberOfImages()/2))
+                sys.stdout.write("\rConverting image %i / %i" % (i,dataset.num_examples))
                 sys.stdout.flush()
             
         hdf5.flush()
