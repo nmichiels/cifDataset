@@ -31,7 +31,7 @@ class CIFDataset(Dataset):
         
 
     # Target resolution required! ==> not all images are of the same size
-    def nextBatch(self, batch_size, image_size):
+    def nextBatch_withmask(self, batch_size, image_size):
         """Return the next `batch_size` examples from this data set."""
         start = self._index_in_epoch
         self._index_in_epoch += batch_size
@@ -65,7 +65,7 @@ class CIFDataset(Dataset):
 
 
 
-    def nextImage(self):
+    def nextImage_withmask(self):
 
         # Calculate the exact position in the cif file
         # *2 because of interleaved image/mask
@@ -82,7 +82,7 @@ class CIFDataset(Dataset):
 
         return image, mask
 
-    def nextImage_nomask(self):
+    def nextImage(self):
         current_image_ID = self._index_in_epoch * 2 +1
 
         self._index_in_epoch += 1
@@ -96,7 +96,7 @@ class CIFDataset(Dataset):
 
 
     # Target resolution required! ==> not all images are of the same size
-    def nextBatch_nomask(self, batch_size, image_size):
+    def nextBatch(self, batch_size, image_size):
         """Return the next `batch_size` examples from this data set."""
         start = self._index_in_epoch
         self._index_in_epoch += batch_size

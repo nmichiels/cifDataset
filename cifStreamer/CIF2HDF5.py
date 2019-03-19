@@ -39,7 +39,7 @@ def convertCIF2HDF5(inputFile, outputFile, img_size, channelsString='', batchSiz
 
         i = 0
         while (not dataset.eod()):
-            data, mask = dataset.nextBatch(batchSize, img_size)
+            data, mask = dataset.nextBatch_withmask(batchSize, img_size)
             if (channelsString):
                 data = data[:,:,:,channels]
                 mask = mask[:,:,:,channels]
@@ -100,7 +100,7 @@ def convertCIF2HDF5_nomask(inputFile, outputFile, img_size, channelsString='', b
 
         i = 0
         while (not dataset.eod()):
-            data = dataset.nextBatch_nomask(batchSize, img_size)
+            data = dataset.nextBatch(batchSize, img_size)
             if (channelsString):
                 data = data[:,:,:,channels]
 
