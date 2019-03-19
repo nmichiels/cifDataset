@@ -1,6 +1,6 @@
 import builtins
-# from cifDataset.cifStreamer.FlowSightParser import FlowSightParser
-from cifDataset.cifStreamer.FlowSightParserC import FlowSightParser
+# from .FlowSightParser import FlowSightParser
+from .FlowSightParserC import FlowSightParser
 
 class CIFDataset(object):
     

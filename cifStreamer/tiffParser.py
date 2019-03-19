@@ -1,7 +1,7 @@
 import numpy as np
 import sys
 
-from cifDataset.cifStreamer.tiffConstants import *
+from .tiffConstants import *
 
 class TiffParser(object):
     

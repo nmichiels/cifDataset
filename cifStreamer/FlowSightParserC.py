@@ -1,8 +1,7 @@
 import numpy as np
 import builtins
-from cifDataset.cifStreamer.tiffParser import TiffParser, IFD
-
-import cifDataset.cifStreamer.FlowSightReaderC.FlowSightReaderC.core as fsr
+from .tiffParser import TiffParser, IFD
+from .FlowSightReaderC.FlowSightReaderC import core as fsr
 
 
 from enum import Enum

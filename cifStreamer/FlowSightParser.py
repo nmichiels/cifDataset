@@ -1,6 +1,6 @@
 import numpy as np
 import builtins
-from cifDataset.cifStreamer.tiffParser import TiffParser, IFD
+from .tiffParser import TiffParser, IFD
 
 
 from enum import Enum
