@@ -1,0 +1,50 @@
+
+class Dataset(object):
+    
+    def __init__(self):
+        self._num_examples = 0
+        self._num_classes = 0
+        self._num_channels = 0
+        self._epochs_done = 0
+        self._index_in_epoch = 0
+
+      
+    def nextBatch(self, batch_size):
+        raise NotImplementedError()
+
+
+    def nextImage(self):
+        return self.nextBatch(1)
+
+    def skip(self, n):
+        self._index_in_epoch += n
+
+    def reset(self):
+            self._index_in_epoch = 0
+
+    @property
+    def num_classes(self):
+        return self._num_classes
+
+    @property
+    def num_channels(self):
+        return self._num_channels
+
+    @property
+    def num_examples(self):
+        return self._num_examples
+
+    @property
+    def epochs_done(self):
+        return self._epochs_done
+
+    # check if end of dataset
+    def eod(self):
+        if (self._index_in_epoch >= self._num_examples):
+            return True
+        else:
+            return False
+    
+        
+    def __del__(self):
+        pass
