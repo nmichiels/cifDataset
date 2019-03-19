@@ -5,31 +5,27 @@ import numpy as np
 import h5py
 import sys
 
-
-
-
 from dataset.dataPreparation import __pad_or_crop
 # from dataset.dataPreparation import __pad_or_crop_zero
 
 def next_batch(dataset, image_size, batch_size):
     
     batch = np.ndarray(shape=(batch_size, image_size,image_size, dataset.numberOfChannels()))
-    batch_mask = np.ndarray(shape=(batch_size, image_size,image_size, dataset.numberOfChannels()))
+    # batch_mask = np.ndarray(shape=(batch_size, image_size,image_size, dataset.numberOfChannels()))
 
     for i in range(0,batch_size):
-        image, mask = dataset.nextImage()
+        image = dataset.nextImage_nomask()
 
         # if (i % 100 == 0):
         #     print(i)
 
         for channel in range(image.shape[-1]):
             img = image[:,:,channel]
-            msk = mask[:,:,channel]
 
             batch[i][:,:,channel] = __pad_or_crop(img, image_size, 'symmetric')# __pad_or_crop(img, image_size, 'symmetric', constant_values=(0))
-            batch_mask[i][:,:,channel] = __pad_or_crop(msk, image_size, 'symmetric')# __pad_or_crop(img, image_size, 'symmetric', constant_values=(0))
+            
             # print (imgCropped)
-    return batch, batch_mask
+    return batch
 
 
 def convertCIF2HDF5(inputFile, outputFile, img_size, channelsString='', batchSize=1, chunkSize=10):
@@ -57,30 +53,32 @@ def convertCIF2HDF5(inputFile, outputFile, img_size, channelsString='', batchSiz
         print(repr(hdf5.name))  
         imageCounter = 0
         dsetImg = hdf5.create_dataset("image", (0, img_size,img_size,numChannels), compression='gzip', compression_opts=4, maxshape=(None,img_size,img_size,numChannels), chunks=(chunkSize,img_size,img_size,numChannels))
-        dsetMsk = hdf5.create_dataset("mask", (0, img_size,img_size,numChannels), compression='gzip', compression_opts=4, maxshape=(None,img_size,img_size,numChannels), chunks=(chunkSize,img_size,img_size,numChannels))
+        # dsetMsk = hdf5.create_dataset("mask", (0, img_size,img_size,numChannels), compression='gzip', compression_opts=4, maxshape=(None,img_size,img_size,numChannels), chunks=(chunkSize,img_size,img_size,numChannels))
 
         i = 0
         while (not dataset.eod()):
-            data, mask = next_batch(dataset, img_size, batchSize)
+            data = next_batch(dataset, img_size, batchSize)
             if (channelsString):
                 data = data[:,:,:,channels]
-                mask = mask[:,:,:,channels]
             #imageGrp = grp.create_group("cell_" + repr(imageCounter))
             #dsetImg = grp.create_dataset("image", data=data, compression='gzip', compression_opts=4)
             
             dsetImg.resize(dsetImg.shape[0]+batchSize, axis=0)  
             dsetImg[-batchSize:] = data
-            dsetMsk.resize(dsetMsk.shape[0]+batchSize, axis=0)  
-            dsetMsk[-batchSize:] = mask
+            # dsetMsk.resize(dsetMsk.shape[0]+batchSize, axis=0)  
+            # dsetMsk[-batchSize:] = mask
             # print(dsetImg.shape)
 
             #dsetMsk = imageGrp.create_dataset("mask", data=mask, compression='gzip', compression_opts=9)
+            
             imageCounter += batchSize
-            hdf5.flush()
-            if (i % 10 == 0):
+            i = i+1
+            if (i % 50 == 0):
+                hdf5.flush()
                 sys.stdout.write("\rConverting image %i / %i" % (i,dataset.numberOfImages()/2))
                 sys.stdout.flush()
-            i = i+1
+            
+        hdf5.flush()
 
 
 
@@ -92,8 +90,6 @@ def convertCIF2HDF5(inputFile, outputFile, img_size, channelsString='', batchSiz
         print("Creating HDF5 file finished.")
 
 def __main__():
-    import time
-    start_time = time.time()
     if (len(sys.argv) < 4 or len(sys.argv) > 5):
         print("Wrong number of input arguments. Usage: python convertCIF2HDF5 input.cif output.hdf5 targetSize")
     else:
@@ -101,7 +97,6 @@ def __main__():
             convertCIF2HDF5(sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4])
         else:
             convertCIF2HDF5(sys.argv[1], sys.argv[2], int(sys.argv[3]))
-    print("--- %s seconds ---" % (time.time() - start_time))
   
 # # dataset = CIFDataSet("../05-Aug-2015_A04-noBF.cif")
 # # # dataset = HDF5DataSet("test.hdf5")
