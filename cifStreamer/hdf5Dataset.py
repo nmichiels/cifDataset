@@ -34,6 +34,11 @@ class HDF5Dataset(Dataset):
      
         self._index_in_epoch = 0
 
+    def get(self, index, image_size = None):
+        if (index >= self.num_examples):
+            raise IndexError("datasetindex ouf of range")
+        return self._images[index]
+
     def next_batch(self, batch_size, image_size = None):
         """Return the next `batch_size` examples from this data set."""
         start = self._index_in_epoch
