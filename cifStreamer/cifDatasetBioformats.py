@@ -6,7 +6,7 @@ import javabridge.jutil
 
 class CIFDataset(object):
     
-    def __init__(self, cifFile):
+    def __init__(self, cifFile, overRuleChannelCount = None):
         try:
             print('Initializing Dataset: ' + cifFile)
             javabridge.start_vm(class_path=bioformats.JARS, max_heap_size='8G')
@@ -18,7 +18,7 @@ class CIFDataset(object):
             jmd = javabridge.JWrapper(self._reader.rdr.getMetadataStore())
             print("ChannelName", jmd.getChannelName(1,0),jmd.getChannelName(1,1), jmd.getChannelName(1,2))
     
-
+            
             # print("test", test)
     
 
@@ -27,6 +27,8 @@ class CIFDataset(object):
             print("Image Count: " + repr(self._nimages))
             print("Channel Count: " + repr(self._nchannels))
 
+            if (overRuleChannelCount):
+                print("BEWARE: overRuleChannelCount is not used in cifDatasetBioformats")
             self._current_image_ID = 0
          
             # test = javabridge.call(self._reader.metadata, "getChannelName", "(II)Ljava/lang/String;", 10,1)
@@ -40,13 +42,13 @@ class CIFDataset(object):
         print ("Next batch")
         # todo
 
-    def nextImage(self):
+    def nextImage_withmask(self):
         image = self._reader.read(series=self._current_image_ID)
         mask = self._reader.read(series=self._current_image_ID+1)
         self._current_image_ID += 2
         return image, mask
 
-    def nextImage_nomask(self):
+    def nextImage(self):
         image = self._reader.read(series=self._current_image_ID)
         # mask = self._reader.read(series=self._current_image_ID+1)
         self._current_image_ID += 2

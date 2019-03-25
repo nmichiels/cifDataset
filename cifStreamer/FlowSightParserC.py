@@ -41,7 +41,7 @@ class FlowSightParser(object):
     #     self._tiffParser = TiffParser(self._fp)
 
     
-    def loadMetaData(self, verbose=False):
+    def loadMetaData(self, verbose=False, overRuleChannelCount = None):
         
         # ifd = self.getFirstIFD()
         # self.fillInIFD(ifd)
@@ -69,6 +69,9 @@ class FlowSightParser(object):
         self._channelCount = ChannelsInUseIndicatorNodes.text.split(' ').count('1')
         self._channelLayout = ChannelsInUseIndicatorNodes.text
 
+        if overRuleChannelCount:
+            self._channelCount = overRuleChannelCount 
+            
         if (verbose):
             print("Channels used: %s (%i)" %(ChannelsInUseIndicatorNodes.text , self._channelCount))
             print("Num Cells: %i" %(self._numCells))
