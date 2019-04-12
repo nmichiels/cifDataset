@@ -7,7 +7,7 @@ from .dataPreparation import pad_or_crop
 
 class CIFDataset(Dataset):
     
-    def __init__(self, cifFile):
+    def __init__(self, cifFile, overRuleChannelCount = None):
       
         print('Initializing Dataset: ' + cifFile)
         Dataset.__init__(self)
@@ -20,10 +20,11 @@ class CIFDataset(Dataset):
             self._nchannels = 0
             return
 
-        self._flowSightParser.loadMetaData(verbose=False)
+        self._flowSightParser.loadMetaData(verbose=False, overRuleChannelCount = overRuleChannelCount)
 
         self._num_examples = int(self._flowSightParser._numCells / 2)
         self._num_channels = self._flowSightParser._channelCount
+        
         print("Image Count: " + repr(self._num_examples))
         print("Channel Count: " + repr(self._num_channels))
 
@@ -91,6 +92,18 @@ class CIFDataset(Dataset):
             self._index_in_epoch = 0
 
         image = self._flowSightParser.openIFDData(current_image_ID , verbose=False)
+
+        return image
+
+    def nextMask(self):
+        current_image_ID = self._index_in_epoch * 2 +1
+
+        self._index_in_epoch += 1
+        if self._index_in_epoch > self._num_examples:
+            self._epochs_done += 1
+            self._index_in_epoch = 0
+
+        image = self._flowSightParser.openIFDData(current_image_ID+1 , verbose=False)
 
         return image
 

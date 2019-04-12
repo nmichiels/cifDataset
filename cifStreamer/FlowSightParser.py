@@ -36,7 +36,7 @@ class FlowSightParser(object):
     #     self._tiffParser = TiffParser(self._fp)
 
     
-    def loadMetaData(self, verbose=False):
+    def loadMetaData(self, verbose=False, overRuleChannelCount = None):
         
         # ifd = self.getFirstIFD()
         # self.fillInIFD(ifd)
@@ -63,6 +63,9 @@ class FlowSightParser(object):
 
         self._channelCount = ChannelsInUseIndicatorNodes.text.split(' ').count('1')
         self._channelLayout = ChannelsInUseIndicatorNodes.text
+
+        if overRuleChannelCount:
+            self._channelCount = overRuleChannelCount 
 
         if (verbose):
             print("Channels used: %s (%i)" %(ChannelsInUseIndicatorNodes.text , self._channelCount))
@@ -311,7 +314,7 @@ class FlowSightParser(object):
                 # print("runLength: ",off + runLength, uncompressed.size, 0xFF)
                 if (off + runLength > uncompressed.size):
                     print("Unexpected buffer overrun encountered when decompressing bitmask data")
-                    return None
+                    # return None
                 # if (self.bytesToInt(value) != 0):
                 #     print("v:",value)
                 uncompressed[off:off+runLength] = self._tiffParser.bytesToInt(value)
