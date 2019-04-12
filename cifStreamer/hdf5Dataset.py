@@ -39,7 +39,7 @@ class HDF5Dataset(Dataset):
             raise IndexError("datasetindex ouf of range")
         return self._images[index]
 
-    def next_batch(self, batch_size, image_size = None):
+    def nextBatch_withmask(self, batch_size, image_size = None):
         """Return the next `batch_size` examples from this data set."""
         start = self._index_in_epoch
         self._index_in_epoch += batch_size
@@ -56,6 +56,24 @@ class HDF5Dataset(Dataset):
 
 
         return self._images[start:end], batch_mask#, self._labels[start:end]
+
+    def nextImage_withmask(self):
+        return self.nextBatch_withmask(1)
+
+    def next_batch(self, batch_size, image_size = None):
+        """Return the next `batch_size` examples from this data set."""
+        start = self._index_in_epoch
+        self._index_in_epoch += batch_size
+        end = self._index_in_epoch
+        
+        if end > self._num_examples:
+            end = self._num_examples
+            self._epochs_done += 1
+            self._index_in_epoch = 0
+
+
+
+        return self._images[start:end]
 
     def nextImage(self):
         return self.next_batch(1)   
