@@ -3,3 +3,6 @@ __pycache__/
 *.pyc
 **/*.pyc
 .vscode/
+/cifStreamer/FlowSightReaderC/FlowSightReaderC/core.cp36-win_amd64.pyd
+/cifStreamer/FlowSightReaderC/FlowSightReaderC/conversion.cp36-win_amd64.pyd
+/cifStreamer/FlowSightReaderC/FlowSightReaderC/eigen.cp36-win_amd64.pyd
