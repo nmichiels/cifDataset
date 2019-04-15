@@ -60,7 +60,7 @@ class HDF5Dataset(Dataset):
     def nextImage_withmask(self):
         return self.nextBatch_withmask(1)
 
-    def next_batch(self, batch_size, image_size = None):
+    def nextBatch(self, batch_size, image_size = None):
         """Return the next `batch_size` examples from this data set."""
         start = self._index_in_epoch
         self._index_in_epoch += batch_size

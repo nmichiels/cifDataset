@@ -12,12 +12,18 @@ class Dataset(object):
     def nextBatch(self, batch_size, image_size = None):
         raise NotImplementedError()
 
+    def nextBatch_withmask(self, batch_size, image_size = None):
+        raise NotImplementedError()
+
     # # return both images and labels
     # def next_training_batch(self, batch_size, image_size = None):
     #     raise NotImplementedError()
 
     def nextImage(self):
         return self.nextBatch(1)
+
+    def nextImage_withmask(self):
+        return self.nextBatch_withmask(1)
 
     def get(self, index, image_size = None):
         raise NotImplementedError()

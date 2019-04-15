@@ -1,6 +1,31 @@
 import numpy as np
 import math
 
+def center_crop_pad(image, mask, maskChannel, blobIntensity, target_size, mode='symmetric'):
+    # use first channel of mask to calculate center of mass
+    # find the biggest blob
+    center_of_mass = np.average(np.argwhere(mask[:,:,maskChannel] == blobIntensity), axis=0)
+
+    center_x = int(np.floor(center_of_mass[0]))
+    center_y = int(np.floor(center_of_mass[1]))
+
+    half_size = int((target_size - 1) / 2)
+
+    i_first = max(0, center_x-half_size)
+    i_last = center_x+half_size+1
+    j_first = max(0, center_y-half_size)
+    j_last = center_y+half_size+1
+
+    crop = image[i_first:i_last, j_first:j_last]
+    pad_x = (int(np.floor((target_size - crop.shape[0]) / 2)), int(np.ceil((target_size - crop.shape[0]) / 2)))
+    pad_y = (int(np.floor((target_size - crop.shape[1]) / 2)), int(np.ceil((target_size - crop.shape[1]) / 2)))
+    pad_z = (0, 0)
+    image = np.pad(crop, (pad_x, pad_y,pad_z), mode)
+    crop = mask[i_first:i_last, j_first:j_last]
+    mask = np.pad(crop, (pad_x, pad_y,pad_z), mode)
+    return image, mask
+
+
 # def pad_or_crop_zero(image, image_size):
 #     bigger = max(image.shape[0], image.shape[1], image_size)
 

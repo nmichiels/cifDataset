@@ -89,12 +89,18 @@ class FlowSightParser(object):
 
 
         
-        
-        
+    def eof(self):
+        return self._tiffParser.eof()  
+    
+    def resetToFirstIFD(self):
+        return self._tiffParser.resetToFirstIFD()
 
     def openIFDData(self, idx, verbose=False):
+        if (self._tiffParser.eof()):
+            return None
+
         # Loading Image Data of one IFD
-        ifd = self._tiffParser.loadIFD(idx)
+        ifd = self._tiffParser.loadNextIFD()#self._tiffParser.loadIFD(idx)
         if verbose:
             self._tiffParser.fillInIFD(ifd) # not required?
             self._tiffParser.printIFDvalues(ifd)

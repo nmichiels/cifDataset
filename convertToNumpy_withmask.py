@@ -7,8 +7,8 @@ from cifStreamer.hdf5Dataset import HDF5Dataset
 from cifStreamer.dataPreparation import pad_or_crop
 # from cifStreamer.dataPreparation import pad_or_crop_zero
 
-if (len(sys.argv) < 4 or len(sys.argv) > 6):
-    print("Wrong parameters. Use \"", sys.argv[0], "inputFile outputNumpy targetSize [numImages] [channels]\"")
+if (len(sys.argv) < 4 or len(sys.argv) > 7):
+    print("Wrong parameters. Use \"", sys.argv[0], "inputFile outputNumpy targetSize [outputMask] [numImages] [channels]\"")
     sys.exit(1)
 
 inputFile = sys.argv[1]
@@ -18,8 +18,8 @@ img_size = int(sys.argv[3])
 
 
 channelsString = None
-if (len(sys.argv) == 6):
-    channelsString = sys.argv[5]
+if (len(sys.argv) == 7):
+    channelsString = sys.argv[6]
 
 if (not outputFile):
     print("No output file specified")
@@ -65,11 +65,14 @@ def next_batch(dataset, image_size, batch_size, channels):
     return batch, batch_mask
 
 
+outputFileMask = None
+if (len(sys.argv) > 4):
+    outputFileMask = sys.argv[4]
 
 
 batchSize = dataset.num_examples
-if (len(sys.argv) > 4):
-    batchSize = min(int(sys.argv[4]),batchSize)
+if (len(sys.argv) > 5):
+    batchSize = min(int(sys.argv[5]),batchSize)
     print("NumImages:", batchSize)
 
 
@@ -79,4 +82,6 @@ if (len(sys.argv) > 4):
 data, masks = dataset.nextBatch_withmask(batchSize)
 data = data[:,:,:,channels]
 np.save(outputFile, data)
+if outputFileMask is not None:
+    np.save(outputFileMask, masks)
 print("Saved numpy array with shape", repr(data.shape))

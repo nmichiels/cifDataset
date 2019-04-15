@@ -30,6 +30,12 @@ class CIFDataset(Dataset):
 
         self._index_in_epoch = 0
         
+    def eod(self):
+        if (self._epochs_done > 0):
+            return True
+        else:
+            return False
+
 
     # Target resolution required! ==> not all images are of the same size
     def nextBatch_withmask(self, batch_size, image_size):
@@ -74,9 +80,15 @@ class CIFDataset(Dataset):
         current_image_ID = self._index_in_epoch * 2 +1 
 
         self._index_in_epoch += 1
-        if self._index_in_epoch > self._num_examples:
+        #if self._index_in_epoch > self._num_examples:
+        #    self._epochs_done += 1
+        #    self._index_in_epoch = 0
+
+        if self._flowSightParser.eof():
+            self._num_examples = self._index_in_epoch
             self._epochs_done += 1
             self._index_in_epoch = 0
+            self._flowSightParser.resetToFirstIFD()
 
         image = self._flowSightParser.openIFDData(current_image_ID , verbose=False)
         mask = self._flowSightParser.openIFDData(current_image_ID+1 , verbose=False)
@@ -92,6 +104,7 @@ class CIFDataset(Dataset):
             self._index_in_epoch = 0
 
         image = self._flowSightParser.openIFDData(current_image_ID , verbose=False)
+        mask = self._flowSightParser.openIFDData(current_image_ID+1 , verbose=False)
 
         return image
 

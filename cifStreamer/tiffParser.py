@@ -37,14 +37,36 @@ class TiffParser(object):
         print("BYTE: ", self._byteorder)
         if verbose:
             print("Reading IFDs");
-        self._ifdOffsets = self.getIFDOffsets()
+
+        self._eofReached = False
+        self._ifdOffsets = [self.getFirstOffset()]#self.getIFDOffsets()#[self.getFirstOffset()]# self.getIFDOffsets() #
+        self._currentOffset = self.getNextIFDOffset(self._ifdOffsets[0])
+
+        #empty file
+        if (self._currentOffset <= 0 or self._currentOffset >= self._length):
+            self._eofReached = True
+
+
+        # without preprocessing all offsets there is no way to know how many IFD or cells there are
         self._numCells = len(self._ifdOffsets) -1 # first one is not a cell
 
-        if (len(self._ifdOffsets) < 2):
-            print("No IFDs found");
-            return
+        #if (len(self._ifdOffsets) < 2):
+        #    print("No IFDs found");
+        #    return
 
     
+    def eof(self):
+        return self._eofReached
+
+    def resetToFirstIFD(self):
+        self._eofReached = False
+        self._currentOffset = self.getNextIFDOffset(self._ifdOffsets[0])
+
+        #empty file
+        if (self._currentOffset <= 0 or self._currentOffset >= self._length):
+            self._eofReached = True
+
+
     def skipBytes(self, numBytes):
         self._fp.seek(self._fp.tell() + numBytes)
 
@@ -80,6 +102,17 @@ class TiffParser(object):
         offset = self._ifdOffsets[idxOff]
         # print("loading ifd at offset, ", offset)
         return self.getIFD(offset)
+
+
+    def loadNextIFD(self):
+        ifd = self.getIFD(self._currentOffset)
+        self._currentOffset = self.getNextIFDOffset(self._currentOffset)
+
+        if (self._currentOffset <= 0 or self._currentOffset >= self._length):
+            self._eofReached = True
+            
+        # print("loading ifd at offset, ", offset)
+        return ifd
 
     def getIFD(self, offset):
         ifd = {}
@@ -264,7 +297,7 @@ class TiffParser(object):
         # // Only adjust the offset if we know that the file is too large for 32-bit
         # // offsets to be accurate; otherwise, we're making the incorrect assumption
         # // that IFDs are stored sequentially.
-        if (offset < previous and offset != 0 and self._length > sys.maxint):
+        if (offset < previous and offset != 0 and self._length > sys.maxsize):
             offset += int(0x100000000,16);
         
         return offset;
@@ -284,6 +317,15 @@ class TiffParser(object):
         if (self._bigTiff): self.skipBytes(4)
         return self.getNextOffset(0)
     
+    def getNextIFDOffset(self, previousOffset):
+        self._fp.seek(previousOffset)
+        nEntries = 0
+        if self._bigTiff:
+            nEntries = self.loadBytesToInt(8)
+        else:
+            nEntries = self.loadBytesToInt(2)
+        self.skipBytes(nEntries * TiffConstants.BYTES_PER_ENTRY)
+        return self.getNextOffset(previousOffset)
 
 
     def getIFDOffsets(self):

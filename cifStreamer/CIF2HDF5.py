@@ -1,7 +1,7 @@
 from .hdf5Dataset import HDF5Dataset
 from .cifDataset import CIFDataset
 # from .cifDatasetBioformats import CIFDataset
-from .dataPreparation import pad_or_crop
+from .dataPreparation import pad_or_crop,center_crop_pad
 # from dataset.dataPreparation import pad_or_crop_zero
 
 import numpy as np
@@ -10,7 +10,7 @@ import sys
 
 
 
-def convertCIF2HDF5(inputFile, outputFile, img_size, channelsString='', batchSize=1, chunkSize=10):
+def convertCIF2HDF5(inputFile, outputFile, img_size, maxImages = None, channelsString='', batchSize=1, chunkSize=10):
     
     try:
         
@@ -38,24 +38,66 @@ def convertCIF2HDF5(inputFile, outputFile, img_size, channelsString='', batchSiz
         dsetMsk = hdf5.create_dataset("mask", (0, img_size,img_size,numChannels), compression='gzip', compression_opts=4, maxshape=(None,img_size,img_size,numChannels), chunks=(chunkSize,img_size,img_size,numChannels))
 
         i = 0
+        #while (not dataset.eod()):
+        #    data, mask = dataset.nextBatch_withmask(batchSize, img_size)
+        #    if (channelsString):
+        #        data = data[:,:,:,channels]
+        #        mask = mask[:,:,:,channels]
+        #    #imageGrp = grp.create_group("cell_" + repr(imageCounter))
+        #    #dsetImg = grp.create_dataset("image", data=data, compression='gzip', compression_opts=4)
+            
+        #    dsetImg.resize(dsetImg.shape[0]+batchSize, axis=0)  
+        #    dsetImg[-batchSize:] = data
+        #    dsetMsk.resize(dsetMsk.shape[0]+batchSize, axis=0)  
+        #    dsetMsk[-batchSize:] = mask
+        #    # print(dsetImg.shape)
+
+        #    #dsetMsk = imageGrp.create_dataset("mask", data=mask, compression='gzip', compression_opts=9)
+        #    imageCounter += batchSize
+        #    hdf5.flush()
+        #    if (i % 10 == 0):
+        #        sys.stdout.write("\rConverting image %i / %i" % (i,dataset.num_examples))
+        #        sys.stdout.flush()
+        #    i = i+1
+
+        imgNumber = 0
         while (not dataset.eod()):
-            data, mask = dataset.nextBatch_withmask(batchSize, img_size)
+            if maxImages is not None:
+                if imgNumber >= maxImages:
+                    break
+            imgNumber = imgNumber + 1
+            image, mask = dataset.nextImage_withmask()
+    
             if (channelsString):
-                data = data[:,:,:,channels]
-                mask = mask[:,:,:,channels]
+                image = image[:,:,channels]
+                mask = mask[:,:,channels]
+
+      
+
+            centerChannel = 0
+            # use mask of first channel (bright field) to center the data
+            uniqueVals, uniqueCount = np.unique(mask[:,:,centerChannel], return_counts = True)
+            if uniqueCount.shape[0] == 1: # only black pixels in mask, no reference to center the cell
+                print("skipping ", imageCounter)
+                imageCounter += 1
+                continue
+
+            blobIntensity = uniqueVals[np.argmax(uniqueCount[1:]) + 1] # ignore black pixels in mask
+            image, mask = center_crop_pad(image, mask, centerChannel, blobIntensity, img_size)
+
             #imageGrp = grp.create_group("cell_" + repr(imageCounter))
             #dsetImg = grp.create_dataset("image", data=data, compression='gzip', compression_opts=4)
             
-            dsetImg.resize(dsetImg.shape[0]+batchSize, axis=0)  
-            dsetImg[-batchSize:] = data
-            dsetMsk.resize(dsetMsk.shape[0]+batchSize, axis=0)  
+            dsetImg.resize(dsetImg.shape[0]+1, axis=0)  
+            dsetImg[-batchSize:] = image
+            dsetMsk.resize(dsetMsk.shape[0]+1, axis=0)  
             dsetMsk[-batchSize:] = mask
             # print(dsetImg.shape)
 
             #dsetMsk = imageGrp.create_dataset("mask", data=mask, compression='gzip', compression_opts=9)
             imageCounter += batchSize
             hdf5.flush()
-            if (i % 10 == 0):
+            if (i % 100 == 0):
                 sys.stdout.write("\rConverting image %i / %i" % (i,dataset.num_examples))
                 sys.stdout.flush()
             i = i+1
