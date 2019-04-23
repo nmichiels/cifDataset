@@ -25,6 +25,9 @@ class Dataset(object):
     def nextImage_withmask(self):
         return self.nextBatch_withmask(1)
 
+    def get_batch(self, idx, batch_size, image_size):
+        raise NotImplementedError()
+        
     def get(self, index, image_size = None):
         raise NotImplementedError()
 

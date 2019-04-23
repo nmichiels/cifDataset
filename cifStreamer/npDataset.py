@@ -39,4 +39,11 @@ class NPDataset(Dataset):
   def nextImage(self):
     return self.next_batch(1)   
 
+  def get_batch(self, idx, batch_size, image_size):
 
+    start = idx*batch_size
+    end = (idx+1)*batch_size
+    if end > self._num_examples:
+        end = self._num_examples
+     
+    return self._images[start:end], self._labels[start:end]
