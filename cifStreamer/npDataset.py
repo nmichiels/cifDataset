@@ -47,3 +47,8 @@ class NPDataset(Dataset):
         end = self._num_examples
      
     return self._images[start:end], self._labels[start:end]
+
+  def permutate(self):
+    p = np.random.permutation(self._images.shape[0])
+    self._images = self._images[p]
+    self._labels = self._labels[p]

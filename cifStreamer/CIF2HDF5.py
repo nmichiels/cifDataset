@@ -34,8 +34,11 @@ def convertCIF2HDF5(inputFile, outputFile, img_size, maxImages = None, channelsS
 
         print(repr(hdf5.name))  
         imageCounter = 0
-        dsetImg = hdf5.create_dataset("image", (0, img_size,img_size,numChannels), compression='gzip', compression_opts=4, maxshape=(None,img_size,img_size,numChannels), chunks=(chunkSize,img_size,img_size,numChannels))
-        dsetMsk = hdf5.create_dataset("mask", (0, img_size,img_size,numChannels), compression='gzip', compression_opts=4, maxshape=(None,img_size,img_size,numChannels), chunks=(chunkSize,img_size,img_size,numChannels))
+        # dsetImg = hdf5.create_dataset("image", (0, img_size,img_size,numChannels), compression='gzip', compression_opts=4, maxshape=(None,img_size,img_size,numChannels), chunks=(chunkSize,img_size,img_size,numChannels))
+        # dsetMsk = hdf5.create_dataset("mask", (0, img_size,img_size,numChannels), compression='gzip', compression_opts=4, maxshape=(None,img_size,img_size,numChannels), chunks=(chunkSize,img_size,img_size,numChannels))
+        dsetImg = hdf5.create_dataset("image", (0, img_size,img_size,numChannels), maxshape=(None,img_size,img_size,numChannels), chunks=(chunkSize,img_size,img_size,numChannels))
+        dsetMsk = hdf5.create_dataset("mask", (0, img_size,img_size,numChannels),  maxshape=(None,img_size,img_size,numChannels), chunks=(chunkSize,img_size,img_size,numChannels))
+
 
         i = 0
         #while (not dataset.eod()):
