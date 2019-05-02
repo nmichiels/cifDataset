@@ -23,7 +23,7 @@ class NPDataset(Dataset):
   def labels(self):
     return self._labels
           
-  def next_batch(self, batch_size, image_size = None):
+  def nextBatch(self, batch_size, image_size = None):
     """Return the next `batch_size` examples from this data set."""
     start = self._index_in_epoch
     self._index_in_epoch += batch_size
@@ -37,7 +37,7 @@ class NPDataset(Dataset):
     return self._images[start:end], self._labels[start:end]
   
   def nextImage(self):
-    return self.next_batch(1)   
+    return self.nextBatch(1)   
 
   def get_batch(self, idx, batch_size, image_size):
 

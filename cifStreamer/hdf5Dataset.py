@@ -76,4 +76,4 @@ class HDF5Dataset(Dataset):
         return self._images[start:end]
 
     def nextImage(self):
-        return self.next_batch(1)   
+        return self.nextBatch(1)   
