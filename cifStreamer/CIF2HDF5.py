@@ -40,7 +40,7 @@ def convertCIF2HDF5(inputFile, outputFile, img_size, maxImages = None, channelsS
         dsetMsk = hdf5.create_dataset("mask", (0, img_size,img_size,numChannels),  maxshape=(None,img_size,img_size,numChannels), chunks=(chunkSize,img_size,img_size,numChannels))
 
 
-        i = 0
+        i = 1
         #while (not dataset.eod()):
         #    data, mask = dataset.nextBatch_withmask(batchSize, img_size)
         #    if (channelsString):
@@ -100,9 +100,9 @@ def convertCIF2HDF5(inputFile, outputFile, img_size, maxImages = None, channelsS
             #dsetMsk = imageGrp.create_dataset("mask", data=mask, compression='gzip', compression_opts=9)
             imageCounter += batchSize
             hdf5.flush()
-            if (i % 100 == 0):
-                sys.stdout.write("\rConverting image %i / %i" % (i,dataset.num_examples))
-                sys.stdout.flush()
+            # if (i % 100 == 0):
+            sys.stdout.write("\rConverting image %i / %i" % (i,dataset.num_examples))
+            sys.stdout.flush()
             i = i+1
 
 

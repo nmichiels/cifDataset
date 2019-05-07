@@ -39,36 +39,38 @@ class CIFDataset(Dataset):
 
     # Target resolution required! ==> not all images are of the same size
     def nextBatch_withmask(self, batch_size, image_size):
+        # old implementation, requires known number of images in dataset and it is to slow to know up front
+        raise NotImplementedError()
         """Return the next `batch_size` examples from this data set."""
-        start = self._index_in_epoch
-        self._index_in_epoch += batch_size
-        end = self._index_in_epoch
+        # start = self._index_in_epoch
+        # self._index_in_epoch += batch_size
+        # end = self._index_in_epoch
         
-        if end > self._num_examples:
-            end = self._num_examples
-            self._epochs_done += 1
-            self._index_in_epoch = 0
+        # if end > self._num_examples:
+        #     end = self._num_examples
+        #     self._epochs_done += 1
+        #     self._index_in_epoch = 0
 
-        count = end-start
-        # print("batch:", batch_size)
-        # print("end: ", count)
-        batch = np.ndarray(shape=(count, image_size,image_size, self.num_channels))
-        batch_mask = np.ndarray(shape=(count, image_size,image_size, self.num_channels))
+        # count = end-start
+        # # print("batch:", batch_size)
+        # # print("end: ", count)
+        # batch = np.ndarray(shape=(count, image_size,image_size, self.num_channels))
+        # batch_mask = np.ndarray(shape=(count, image_size,image_size, self.num_channels))
 
-        for i in range(0,count):
-            current_image_ID = (self._index_in_epoch-count+i) * 2 +1 
+        # for i in range(0,count):
+        #     current_image_ID = (self._index_in_epoch-count+i) * 2 +1 
 
-            image = self._flowSightParser.openIFDData(current_image_ID , verbose=False)
-            mask = self._flowSightParser.openIFDData(current_image_ID+1 , verbose=False)
+        #     image = self._flowSightParser.openIFDData(current_image_ID , verbose=False)
+        #     mask = self._flowSightParser.openIFDData(current_image_ID+1 , verbose=False)
 
-            for channel in range(image.shape[-1]):
-                img = image[:,:,channel]
-                msk = mask[:,:,channel]
+        #     for channel in range(image.shape[-1]):
+        #         img = image[:,:,channel]
+        #         msk = mask[:,:,channel]
 
-                batch[i][:,:,channel] = pad_or_crop(img, image_size, 'symmetric')# pad_or_crop(img, image_size, 'symmetric', constant_values=(0))
-                batch_mask[i][:,:,channel] = pad_or_crop(msk, image_size, 'symmetric')# pad_or_crop(img, image_size, 'symmetric', constant_values=(0))
-                # print (imgCropped)
-        return batch, batch_mask
+        #         batch[i][:,:,channel] = pad_or_crop(img, image_size, 'symmetric')# pad_or_crop(img, image_size, 'symmetric', constant_values=(0))
+        #         batch_mask[i][:,:,channel] = pad_or_crop(msk, image_size, 'symmetric')# pad_or_crop(img, image_size, 'symmetric', constant_values=(0))
+        #         # print (imgCropped)
+        # return batch, batch_mask
 
 
 
@@ -84,14 +86,17 @@ class CIFDataset(Dataset):
         #    self._epochs_done += 1
         #    self._index_in_epoch = 0
 
+        
+
+        image = self._flowSightParser.openIFDData(current_image_ID , verbose=False)
+        mask = self._flowSightParser.openIFDData(current_image_ID+1 , verbose=False)
+
+
         if self._flowSightParser.eof():
             self._num_examples = self._index_in_epoch
             self._epochs_done += 1
             self._index_in_epoch = 0
             self._flowSightParser.resetToFirstIFD()
-
-        image = self._flowSightParser.openIFDData(current_image_ID , verbose=False)
-        mask = self._flowSightParser.openIFDData(current_image_ID+1 , verbose=False)
 
         return image, mask
 
