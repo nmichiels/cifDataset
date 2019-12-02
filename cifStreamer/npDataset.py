@@ -36,6 +36,17 @@ class NPDataset(Dataset):
 
     return self._images[start:end], self._labels[start:end]
   
+  def maxIntensityOfChannel(self, channel):
+    if channel >= self.num_channels:
+      raise Exception('Channel %d does not exist, num channels is %d'%(channel, self.num_channels))
+    return np.max(self.images[:,:,:,channel])
+
+  def minIntensityOfChannel(self, channel):
+    if channel >= self.num_channels:
+      raise Exception('Channel %d does not exist, num channels is %d'%(channel, self.num_channels))
+    return np.min(self.images[:,:,:,channel])
+
+
   def nextImage(self):
     return self.nextBatch(1)   
 

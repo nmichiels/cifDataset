@@ -10,7 +10,7 @@ import sys
 
 
 
-def convertCIF2HDF5(inputFile, outputFile, img_size, maxImages = None, channelsString='', batchSize=1, chunkSize=10):
+def convertCIF2HDF5(inputFile, outputFile, img_size,  maxImages = None, masked = False, channelsString='', batchSize=1, chunkSize=10):
     
     try:
         
@@ -87,6 +87,9 @@ def convertCIF2HDF5(inputFile, outputFile, img_size, maxImages = None, channelsS
 
             blobIntensity = uniqueVals[np.argmax(uniqueCount[1:]) + 1] # ignore black pixels in mask
             image, mask = center_crop_pad(image, mask, centerChannel, blobIntensity, img_size)
+
+            if masked:
+                image[mask == 0] = 0.0
 
             #imageGrp = grp.create_group("cell_" + repr(imageCounter))
             #dsetImg = grp.create_dataset("image", data=data, compression='gzip', compression_opts=4)

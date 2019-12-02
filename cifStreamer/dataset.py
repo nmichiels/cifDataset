@@ -41,6 +41,13 @@ class Dataset(object):
             self._index_in_epoch = 0
             self._epochs_done = 0
 
+    def maxIntensityOfChannel(self, channel):
+        raise NotImplementedError()
+
+    def minIntensityOfChannel(self, channel):
+        raise NotImplementedError()
+        
+
     @property
     def num_classes(self):
         return self._num_classes
