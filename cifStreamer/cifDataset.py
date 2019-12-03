@@ -110,7 +110,7 @@ class CIFDataset(Dataset):
 
         image = self._flowSightParser.openIFDData(current_image_ID , verbose=False)
         mask = self._flowSightParser.openIFDData(current_image_ID+1 , verbose=False)
-
+        #image = np.expand_dims(image, axis=0)
         return image
 
     def nextMask(self):
