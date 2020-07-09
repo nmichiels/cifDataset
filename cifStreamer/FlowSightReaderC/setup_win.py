@@ -5,7 +5,7 @@ from Cython.Build import cythonize
 
 __package_name__ = "FlowSightReaderC"
 
-eigen_include_dir = "E:/Libraries/eigen"
+eigen_include_dir = "D:/libraries/eigen-3.3.6"
 
 extensions = [
     Extension("FlowSightReaderC.conversion", ["FlowSightReaderC/conversion.pyx"],

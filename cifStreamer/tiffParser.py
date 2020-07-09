@@ -1,10 +1,14 @@
+"""
+This module provides code for parsing multichannel tiff files. This module is used by FlowSightParser to decode specialized tiff channels in the cif files.
+"""
+
 import numpy as np
 import sys
 
 from .tiffConstants import *
 
 class TiffParser(object):
-    
+    """Class to seek through tiff files with multiple IFDs. The actual content is not decoded in this class."""
 
  
     def __init__(self, fp, verbose=False):
@@ -17,9 +21,9 @@ class TiffParser(object):
         self._fp.seek(0,2) # move the cursor to the end of the file
         self._length  = self._fp.tell()
         self._fp.seek(startFp)
-        # print(self._length)
         self._channelCount = 0
         self._numCells = 0
+        self._verbose = verbose
 
         littleEndian = self.checkHeader()
         self._fp.seek(startFp)
@@ -34,8 +38,9 @@ class TiffParser(object):
         else:
             self._byteorder = 'big'
 
-        print("BYTE: ", self._byteorder)
-        if verbose:
+        
+        if self._verbose:
+            print("BYTE: ", self._byteorder)
             print("Reading IFDs");
 
         self._eofReached = False
@@ -50,15 +55,12 @@ class TiffParser(object):
         # without preprocessing all offsets there is no way to know how many IFD or cells there are
         self._numCells = len(self._ifdOffsets) -1 # first one is not a cell
 
-        #if (len(self._ifdOffsets) < 2):
-        #    print("No IFDs found");
-        #    return
-
     
     def eof(self):
         return self._eofReached
 
     def resetToFirstIFD(self):
+        """Go back to first IFD of the tiff file. This is actually the second, because the first IFD contains all the metadata."""
         self._eofReached = False
         self._currentOffset = self.getNextIFDOffset(self._ifdOffsets[0])
 
@@ -68,14 +70,13 @@ class TiffParser(object):
 
 
     def skipBytes(self, numBytes):
+        """Skip `numBytes` in the tiff file."""
         self._fp.seek(self._fp.tell() + numBytes)
 
 
     def readTiffIFDEntry(self):
         entryTag = self.readUnsignedShort()
         entryType = self.readUnsignedShort()
-
-        # print(entryTag, entryType, IFDType[entryType])
 
         # // Parse the entry's "ValueCount"
         valueCount = 0
@@ -100,7 +101,6 @@ class TiffParser(object):
 
     def loadIFD(self, idxOff):
         offset = self._ifdOffsets[idxOff]
-        # print("loading ifd at offset, ", offset)
         return self.getIFD(offset)
 
 
@@ -111,8 +111,8 @@ class TiffParser(object):
         if (self._currentOffset <= 0 or self._currentOffset >= self._length):
             self._eofReached = True
             
-        # print("loading ifd at offset, ", offset)
         return ifd
+
 
     def getIFD(self, offset):
         ifd = {}
@@ -144,8 +144,6 @@ class TiffParser(object):
             pointer = entry._valueOffset
             bpe = IFDType[entry._entryType]
 
-            # print(i, entry._entryType, IFDTypeName[entry._entryType], count)
-
             if (count < 0 or bpe <= 0):
                 # // invalid data
                 if (self._bigTiff):
@@ -158,7 +156,6 @@ class TiffParser(object):
             if (count * bpe + pointer > inputLen) :
                 oldCount = count
                 count = int((inputLen - pointer) / bpe)
-                # LOGGER.trace("getIFD: truncated {} array elements for tag {}", (oldCount - count), tag)
                 if (count < 0): count = oldCount
             
             if (count < 0 or count > self._length): break;
@@ -168,11 +165,10 @@ class TiffParser(object):
                 value = entry
             else: 
                 value = self.getIFDValue(entry)
-            # print(value)
-
+        
             if (value != None and not(tag in ifd)):
                 ifd[tag] = value
-                # print("ifd{%i} = " %tag, value)
+          
 
         newOffset =offset + baseOffset + bytesPerEntry * numEntries;
         if (newOffset < self._length):
@@ -181,19 +177,20 @@ class TiffParser(object):
             self._fp.seek(self._length)
         return ifd
 
-    #  /** Fill in IFD entries that are stored at an arbitrary offset. */ 
+
     def fillInIFD(self, ifd):
-        # print("FillinIFD")
+        """"Fill in IFD entries that are stored at an arbitrary offset."""
+        
         for key in ifd:
             entry = ifd[key]
             if (isinstance(entry, TiffIFDEntry)):
                 if ((entry._valueCount < 10 * 1024 * 1024 or entry._entryTag < 32768) and entry._entryTag != IFD.COLOR_MAP.value):
-                    # print(entry)
                     ifd[entry._entryTag] = self.getIFDValue(entry)
                     
 
     def printIFDvalues(self, ifd):
-        # Show all entry data
+        """"Show all entry data."""
+       
         for key in ifd:
             if (IFD.has_value(key)):
                 print(IFD(key).name , ifd[key], type(ifd[key]))
@@ -204,7 +201,6 @@ class TiffParser(object):
         typeName = IFDTypeName[entry._entryType ]
         count = entry._valueCount
         offset = entry._valueOffset
-        # print("Reading entry %i from %i; type=%s, count=%i" % (entry._entryTag, offset, typeName, count))
 
         if (offset >= self._length):
             return None
@@ -218,9 +214,7 @@ class TiffParser(object):
             self._fp.seek(offset);
         
         if (typeName == "LONG" or type == "IFD"):
-            # print("reading LONG")
             # // 32-bit (4-byte) unsigned integer
-            # print("count", count)
             if (count == 1):
                 return self.readUnsingedInt()
             longs = [0] * count
@@ -229,7 +223,6 @@ class TiffParser(object):
                     longs[j] = self.readUnsingedInt()
             return longs;
         elif (typeName == "SHORT"):
-            # print("reading SHORT")
             #  // 16-bit (2-byte) unsigned integer
             if (count == 1): 
                 return self.readUnsignedShort()
@@ -252,20 +245,14 @@ class TiffParser(object):
             
 
         elif (typeName == "ASCII"):
-            # print("reading ASCII")
             binary_data = self._fp.read(count)
             text = binary_data.decode('utf-8')
             return text
         return None
-#      /**
-#    * Read a file offset.
-#    * For bigTiff, a 64-bit number is read.  For other Tiffs, a 32-bit number
-#    * is read and possibly adjusted for a possible carry-over from the previous
-#    * offset.
-#    */
+
+
     def bytesToInt(self, bytes):
         return int.from_bytes(bytes, self._byteorder)
-
 
     def loadBytesToInt(self, numBytes):
         return self.bytesToInt(self._fp.read(numBytes))
@@ -293,7 +280,7 @@ class TiffParser(object):
             return self._fp.read(8)  # readLong
 
         offset = (previous & ~0xffffffff | (self.loadBytesToInt(4)))
-        # print(offset)
+      
         # // Only adjust the offset if we know that the file is too large for 32-bit
         # // offsets to be accurate; otherwise, we're making the incorrect assumption
         # // that IFDs are stored sequentially.
@@ -306,10 +293,8 @@ class TiffParser(object):
     def getFirstIFD(self):
         offset = self.getFirstOffset()
         ifd = self.getIFD(offset)
-        print("First offset: " ,offset)
         return ifd
   
-
 
     def getFirstOffset(self):
         header = self.checkHeader()
@@ -317,6 +302,7 @@ class TiffParser(object):
         if (self._bigTiff): self.skipBytes(4)
         return self.getNextOffset(0)
     
+
     def getNextIFDOffset(self, previousOffset):
         self._fp.seek(previousOffset)
         nEntries = 0
@@ -334,7 +320,6 @@ class TiffParser(object):
         if (self._bigTiff):
             bytesPerEntry = TiffConstants.BIG_TIFF_BYTES_PER_ENTRY
         offset = self.getFirstOffset()
-        # print('offset', offset)
         offsets = []
         while (offset > 0 and offset < self._length):
             self._fp.seek(offset);
@@ -349,9 +334,6 @@ class TiffParser(object):
     def checkHeader(self):
         self._fp.seek(0)
         data = self._fp.read(12)
-        # t = int.from_bytes(data[0:4], byteorder='little')
-
-        # print(data[0:4])
         if data[0:4] in [b'II*\x00', b'MM\x00*']:
             # it's a TIFF file
             # print("TIFF format recognized in data[0:4]")
@@ -375,7 +357,8 @@ class TiffParser(object):
             if (magic != TiffConstants.MAGIC_NUMBER and  magic != TiffConstants.BIG_TIFF_MAGIC_NUMBER):
                 print("TiffParser:checkHeader(): Magic Number")
                 return None
-            print("self._bigTiff: ", self._bigTiff)
+            if self._verbose:
+                print("self._bigTiff: ", self._bigTiff)
         
             return littleEndian
         print("TiffParser:checkHeader(): First bytes are not a Tiff header")

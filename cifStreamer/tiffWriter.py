@@ -1,11 +1,13 @@
+"""
+This module provides code for writing custom tiff files.
+"""
+
 import numpy as np
 import sys
-
 from .tiffConstants import *
 
-
 class TiffWriter(object):
-    
+    """This class provides code for writing custom tiff files."""
 
  
     def __init__(self, fp, byteorder='little', verbose=False):
@@ -28,31 +30,6 @@ class TiffWriter(object):
             self.writeBytes(nEntries , 2)
 
 
-
-
-
-        # littleEndian = self.checkHeader()
-        # self._fp.seek(startFp)
-
-        # if (littleEndian == None):
-        #     print("Wrong header")
-        #     return
-
-        # self._byteorder = 'little'
-        # if littleEndian:
-        #     self._byteorder = 'little'
-        # else:
-        #     self._byteorder = 'big'
-
-        # if verbose:
-        #     print("Reading IFDs");
-        # self._ifdOffsets = self.getIFDOffsets()
-        # self._numCells = len(self._ifdOffsets) -1 # first one is not a cell
-
-        # if (len(self._ifdOffsets) < 2):
-        #     print("No IFDs found");
-        #     return
-
     def writeOffset(self):
         # Write first the offset integer of the IFD 
         self._currentOffset = self._fp.tell() + 4 
@@ -67,14 +44,10 @@ class TiffWriter(object):
         self._fp.write(val.to_bytes(nbytes, self._byteorder))
 
 
-
     def writeTiffIFDEntry(self):
         entryTag = self.readUnsignedShort()
         entryType = self.readUnsignedShort()
 
-        # print(entryTag, entryType, IFDType[entryType])
-
-        # // Parse the entry's "ValueCount"
         valueCount = 0
         if self._bigTiff:  valueCount = self.readLong()
         else : valueCount =  self.readInt()

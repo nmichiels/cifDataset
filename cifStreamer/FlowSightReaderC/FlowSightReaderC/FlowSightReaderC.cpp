@@ -96,17 +96,13 @@ struct Diff {
                     return (unsigned char)0xff;
                 }
                 nibbleIdx = 0;
-                // printf("new byte C: 0x%x\n", (unsigned char)currentByte);
             }
             if (nibbleIdx++ == 0) {
                 char nibble = (unsigned char)(currentByte) & 0x0f;
-                // printf("new nibble C: 0x%x\n", (unsigned char)nibble);
                 return nibble;
                 
             } else {
-                // char nibble = (char)(currentByte & 0xf0);
                 char nibble = (unsigned char)(currentByte)>> 4;
-                // printf("new nibble C: 0x%x\n", (unsigned char)nibble);
                 return nibble;
             }
         }
@@ -157,42 +153,12 @@ struct Diff {
 
 
  void openGreyscaleBytes(int imageWidth, int imageHeight, int nchannels, ConstMapVecl&  stripByteCounts, ConstMapVecl& stripOffsets,  MapMatrixf & uncompressed){
-    // std::cout << "Start decoding greyscale bytes..." << std::endl;
     if (!opened){
         std::cout << "C++ ERROR: No file opened to read from." << std::endl;
     }
-    // std::cout << "Target: " << imageHeight << ", " << imageWidth << std::endl;
-    // std::cout << "Uncompressed: " << uncompressed.rows() << ", " << uncompressed.cols() << std::endl;
-    // std::cout << "Reading " << stripByteCounts << " bytes starting from " << stripOffsets << std::endl;
-    // TODO: int to long may cause bugs
-    // std::vector<long> stripByteCountsList = std::vector<long>(1, long(stripByteCounts[0]));
-    // std::vector<long> stripOffsetsList = std::vector<long>(1, long(stripOffsets[0]));
 
     Diff diffs = Diff(fp, 0, stripByteCounts, stripOffsets);
 
-
-
-
-    // unsigned char currentByte  = 0xf1;
-    // printf("test byte: %x\n", (unsigned char) (currentByte));
-    // printf("test: %x\n", (unsigned char) (currentByte >> 4));
-    // return;
-
-    // diffs.__next__();
-    // diffs.__next__();
-    // diffs.__next__();
-    // diffs.__next__();
-    // diffs.__next__();
-    // std::cout << "Next: " << (short)(diffs.__next__()) << std::endl;
-    // std::cout << "Next: " << (short)(diffs.__next__()) << std::endl;
-    // std::cout << "Next: " << (short)(diffs.__next__()) << std::endl;
-    // std::cout << "Next: " << (short)(diffs.__next__()) << std::endl;
-    // std::cout << "Next: " << (short)(diffs.__next__()) << std::endl;
-    // return;
-    // std::cout << "Next: " << (short)(diffs.__next__()) << std::endl;
-    // std::cout << "Next: " << (short)(diffs.__next__()) << std::endl;
-    // std::cout << "Next: " << (short)(diffs.__next__()) << std::endl;
-    // std::cout << "Next: " << (short)(diffs.__next__()) << std::endl;
 
     short skip = diffs.__next__();  // TODO: now skipping one value, but why?
 
@@ -219,36 +185,6 @@ struct Diff {
     }
     uncompressed = uncompressed / 0xffff;  // Scale with maximum 16bit value
     
-    // for (int y=0; y<imageHeight; y++) {
-    //   for (int x = 0; x<widthAllChannels; x++) {
-    //     if (y == 0){
-    //         if (x != 0) 
-    //             uncompressed(y, x) = (short)(diffs.__next__() + uncompressed(y, x-1));
-    //         else 
-    //             uncompressed(y, x) = (short)(diffs.__next__() + uncompressed(y-1, x));
-            
-    //     }
-    //     else {
-    //         if (x != 0)
-    //             uncompressed(y, x) = (short)(diffs.__next__() + uncompressed(y-1, x) + uncompressed(y, x-1) - uncompressed(y-1, x-1));
-    //         else
-    //             uncompressed(y, x) = (short)(diffs.__next__() + uncompressed(y-1, x));
-    //     }
-    //   }
-    // }
-
-    // float maxV = 0.0;
-    // float minV = 9999999.0;
-    // for (int y=0; y<imageHeight; y++) {
-    //   for (int x = 0; x<widthAllChannels; x++) {
-    //     if (uncompressed(y,x) > maxV)
-    //         maxV = uncompressed(y,x);
-    //     if (uncompressed(y,x) < minV)
-    //         minV = uncompressed(y,x);
-    // }
-    // }
-    // std::cout << "maxV: " << maxV << std::endl;
-    // std::cout << "minV: " << minV << std::endl;
 }
 unsigned char readByte(){
     char value = 0;
@@ -260,9 +196,6 @@ void openBitmaskBytes(int imageWidth, int imageHeight, int nchannels, ConstMapVe
     if (!opened){
         std::cout << "C++ ERROR: No file opened to read from." << std::endl;
     }
-
-    // std::vector<long> stripByteCountsList = std::vector<long>(1, long(stripByteCounts));
-    // std::vector<long> stripOffsetsList = std::vector<long>(1, long(stripOffsets));
 
     int widthAllChannels = imageWidth*nchannels;
 

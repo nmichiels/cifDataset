@@ -8,8 +8,8 @@ from enum import Enum
 
 
 
-
 class FlowSightParser(object):
+    """A class to represent a hybrid Python and C++ implementation of a FlowSightParser to open cif files. Images and masks are decoded in C++."""
     
     # Amnis specific
     CHANNEL_COUNT_TAG = 33000
@@ -33,34 +33,21 @@ class FlowSightParser(object):
             return False
 
         self._fp = builtins.open(file, "r+b")
-        self._tiffParser = TiffParser(self._fp) #self.loadFP(self._fp)
+        self._tiffParser = TiffParser(self._fp)
         return True
         
-    # def loadFP(self, fp):
-    #     self._fp = fp
-    #     self._tiffParser = TiffParser(self._fp)
-
     
     def loadMetaData(self, verbose=False, overRuleChannelCount = None):
-        
-        # ifd = self.getFirstIFD()
-        # self.fillInIFD(ifd)
-        # self.printIFDvalues(ifd)
-        
         ifd = self._tiffParser.loadIFD(0)
         self._tiffParser.fillInIFD(ifd)
         if (verbose):
             self._tiffParser.printIFDvalues(ifd)
-
-
         xml = ifd[self.METADATA_XML_TAG]
-        # from xml.dom import minidom
 
         import xml.etree.ElementTree as ET
         root = ET.fromstring(xml)
         imagingNodes = root.find("Imaging");
         ObjectsToAcquireNodes = imagingNodes.find("ObjectsToAcquire");
-        # self._numCells = int(ObjectsToAcquireNodes.text)
         self._numCells = self._tiffParser._numCells
 
         ChannelsInUseIndicatorNodes = imagingNodes.find("ChannelInUseIndicators_0_11");
@@ -77,18 +64,6 @@ class FlowSightParser(object):
             print("Num Cells: %i" %(self._numCells))
             for child in ObjectsToAcquireNodes:
                 print(child.tag, child.attrib)
-        # if (IFD.IMAGE_WIDTH.value in ifd):
-        #     print("add lfd")
-
-        # ifds.add(ifd);
-        # print(ifd)
-
-        # self.openIFDData(2, channelCount)
-        # for i in range(1,numCells*2,2):
-        #     self.openIFDData(i, channelCount)
-        # for i in range(0,numCells*2,2):
-            # self.openIFDData(i, channelCount)
-        # self.openIFDData(3, channelCount)
 
         
 
@@ -104,47 +79,38 @@ class FlowSightParser(object):
             return None
 
         # Loading Image Data of one IFD
-        ifd = self._tiffParser.loadNextIFD()#self._tiffParser.loadIFD(idx)
+        ifd = self._tiffParser.loadNextIFD()
 
         if verbose:
             self._tiffParser.fillInIFD(ifd) # not required?
             self._tiffParser.printIFDvalues(ifd)
-        # 
+        
 
         imageWidth = int(ifd[IFD.IMAGE_WIDTH.value] / self._channelCount)
         imageHeight = ifd[IFD.IMAGE_LENGTH.value]
         bitsPerPixel = ifd[IFD.BITS_PER_SAMPLE.value]
-        # print(imageWidth, imageHeight, bitsPerPixel)
 
         compression = ifd[IFD.COMPRESSION.value]
 
         if (compression == IFD.GREYSCALE_COMPRESSION.value):
-            # print("Loading Image Data")
-            
-            
-            data = self.openGreyscaleBytesC(ifd, imageWidth, imageHeight, self._channelCount)
-            # data = self.openGreyscaleBytes(ifd, imageWidth, imageHeight, self._channelCount)
+            data = self.openGreyscaleBytesC(ifd, imageWidth, imageHeight, self._channelCount) # C++ version
+            # data = self.openGreyscaleBytes(ifd, imageWidth, imageHeight, self._channelCount) #Python version
 
 
         elif (compression == IFD.BITMASK_COMPRESSION.value):
-            # print("Loading Mask Data")
-            data = self.openBitmaskBytesC(ifd, imageWidth, imageHeight, self._channelCount)
-            # data = self.openBitmaskBytes(ifd, imageWidth, imageHeight, self._channelCount)
+            data = self.openBitmaskBytesC(ifd, imageWidth, imageHeight, self._channelCount) # C++ version
+            # data = self.openBitmaskBytes(ifd, imageWidth, imageHeight, self._channelCount) #Python version
         else:
             print("Unknown Amnis Compression")
             return None
 
         bytesPerSample = int(ifd[IFD.BITS_PER_SAMPLE.value] / 8)
-        # print("bytesPerSample", bytesPerSample)
-        # data = data[0:imageWidth*imageHeight]
         data = data.reshape(imageHeight, imageWidth*self._channelCount, order='C')
 
         # Convert data [height, width*channels] into [height, width, channels]   TODO: find better trick
         data = np.asarray(np.hsplit(data, self._channelCount))
         data = np.rollaxis(data, 2,0) 
         data = np.rollaxis(data, 2,0) 
-
-        # print(data[1:20,1:40,1])
         return data
             
     
@@ -186,47 +152,30 @@ class FlowSightParser(object):
     def openBitmaskBytes(self, ifd, imageWidth, imageHeight, nchannels):
         stripByteCounts = ifd[IFD.STRIP_BYTE_COUNTS.value]
         stripOffsets = ifd[IFD.STRIP_OFFSETS.value]
-        # print("imageWidth: ", imageWidth, "imageHeight: ", imageHeight)
-        # print("stripByteCounts: ", stripByteCounts, ", stripOffsets: " , stripOffsets)
-
         uncompressed = np.zeros(imageWidth * imageHeight * nchannels, dtype=int)
-        # print(uncompressed)
 
         off = 0
         if type(stripByteCounts) is list:
             pass
-            # for i in range(len(stripByteCounts):
         else:
             self._fp.seek(stripOffsets)
             for j in range(0, stripByteCounts, 2):
                 value = self._tiffParser.readByte()
-                # print("value", value)
-                
+                               
                 runLength = self._tiffParser.bytesToInt(self._tiffParser.readByte())
-                # print("runLength1", runLength)
                 runLength = (runLength & 0xFF)+1
-                # print("runLength: ",off + runLength, uncompressed.size, 0xFF)
                 if (off + runLength > uncompressed.size):
                     print("Unexpected buffer overrun encountered when decompressing bitmask data")
                     return None
-                # if (self.bytesToInt(value) != 0):
-                #     print("v:",value)
+              
                 uncompressed[off:off+runLength] = self._tiffParser.bytesToInt(value)
                 off = off + runLength
             
-        # print("off: ", off)
-        
         if (off != uncompressed.size):
             print("Buffer shortfall encountered when decompressing bitmask data")
 
 
         uncompressed = uncompressed / 0xff
-        # maxVal = np.amax(uncompressed)
-        # if (maxVal != 0):
-        #     uncompressed = uncompressed / maxVal
-            # return None
-        # print(uncompressed)
-        
         return uncompressed
         
     
