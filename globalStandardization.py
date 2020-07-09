@@ -4,22 +4,20 @@ import sys
 
 
 def globalStandardization(input, output):
+    """
+    This function applies global standardization to the input dataset and stores to the output dataset.
+    Args:
+        input (str): Numpy file containing dataset with shape [num_images, image_size, image_size, num_channels]
+        output (str): Output numpy file containing global standarized dataset with shape [num_images, image_size, image_size, num_channels]
+    """
+
     data = np.load(input)
-    # Local Standardization
-    # calculate per-channel means and standard deviations for all datasamples
-
     means = data.mean(axis=(0,1,2), dtype='float64')
-
-    print(means.shape)
     stds = data.std(axis=(0,1,2), dtype='float64')
-    print(means)
+
     for i, img in enumerate(data):
         for c in range(data.shape[-1]):
-            # print(c)
             data[i,:,:,c] = (img[:,:,c] - means[c]) / stds[c]
-    # for i, img in enumerate(data):
-    #     data[i,:,:,:] = (img - means) / stds
-    print(data)
     np.save(output, data)
    
 
@@ -27,7 +25,7 @@ def __main__():
     import time
     start_time = time.time()
     if (len(sys.argv) < 3 or len(sys.argv) > 3):
-        print("Wrong number of input arguments. Usage: python input.npy lsoutput.npy")
+        print("Wrong number of input arguments. Usage: python input.npy output.npy")
     else:
         globalStandardization(sys.argv[1],sys.argv[2])
     print("--- %s seconds ---" % (time.time() - start_time))

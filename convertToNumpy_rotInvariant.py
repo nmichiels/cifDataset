@@ -1,4 +1,15 @@
-# converting hdf5 of cif dataset to numpy data
+"""
+This script will allow the user to convert HDF5 to numpy dataset.
+IMPORTANT: The dataset is augmented with multiple rotations of the data
+
+
+Args:
+    inputFile (str): Input hdf5 file
+    outputFile (str): Output npy file.
+    img_size (int): Target resolution of the images.  All images are cropped, centered and padded to an output resolution of `img_size`.
+    numImages (int, optional): Number of images to convert.
+    channels (str, optional): Channels to keep in the output dataset. (E.g `0,2,3,5`).
+"""
 
 import sys
 import numpy as np
@@ -8,7 +19,7 @@ from cifStreamer.dataPreparation import pad_or_crop
 # from cifStreamer.dataPreparation import pad_or_crop_zero
 
 if (len(sys.argv) < 4 or len(sys.argv) > 6):
-    print("Wrong parameters. Use \"", sys.argv[0], "inputFile outputNumpy targetSize [numImages] [channels]\"")
+    print("Wrong parameters. Use \"", sys.argv[0], "inputFile.hdf5 outputFile.npy img_size [numImages] [channels]\"")
     sys.exit(1)
 
 inputFile = sys.argv[1]

@@ -1,4 +1,17 @@
-# converting hdf5 of cif dataset to numpy data
+"""
+This script will allow the user to convert HDF5 to numpy dataset.
+The mask data is also exported.
+
+
+Args:
+    inputFile (str): Input hdf5 dataset file.
+    outputFile (str): Output npy file containing images.
+    img_size (int): Target resolution of the images.  All images are cropped, centered and padded to an output resolution of `img_size`.
+    outputMaskFile (str, optional): Output npy file containing masks.
+    numImages (int, optional): Number of images to convert.
+    channels (str, optional): Channels to keep in the output dataset. (E.g `0,2,3,5`).
+"""
+
 
 import sys
 import numpy as np
@@ -8,13 +21,12 @@ from cifStreamer.dataPreparation import pad_or_crop
 # from cifStreamer.dataPreparation import pad_or_crop_zero
 
 if (len(sys.argv) < 4 or len(sys.argv) > 7):
-    print("Wrong parameters. Use \"", sys.argv[0], "inputFile outputNumpy targetSize [outputMask] [numImages] [channels]\"")
+    print("Wrong parameters. Use \"", sys.argv[0], "inputFile.hdf5 outputFile.npy img_size [outputMaskFile.npy] [numImages] [channels]\"")
     sys.exit(1)
 
 inputFile = sys.argv[1]
 outputFile = sys.argv[2]
 img_size = int(sys.argv[3])
-
 
 
 channelsString = None
@@ -39,8 +51,6 @@ if (channelsString):
     channels = np.asarray(channels, dtype=int, order=None)
 
 numChannels = channels.shape[0]
-print("channels: ", channels)
-print("numChannels:",numChannels)
 
 
 def next_batch(dataset, image_size, batch_size, channels):

@@ -1,20 +1,30 @@
-# converting hdf5 of cif dataset to numpy data
+"""
+This script will allow the user to convert HDF5 to numpy dataset.
+Support for CIF to numpy also allowed, but this needs to uncommented and done image per image
+
+
+Args:
+    inputFile (str): Input hdf5 file
+    outputFile (str): Output npy file.
+    img_size (int): Target resolution of the images.  All images are cropped, centered and padded to an output resolution of `img_size`.
+    numImages (int, optional): Number of images to convert.
+    channels (str, optional): Channels to keep in the output dataset. (E.g `0,2,3,5`).
+"""
+
 
 import sys
 import numpy as np
 from cifStreamer.hdf5Dataset import HDF5Dataset
-# from cifStreamer.cifDataset import CIFDataset
+#from cifStreamer.cifDataset import CIFDataset
 from cifStreamer.dataPreparation import pad_or_crop
-# from cifStreamer.dataPreparation import pad_or_crop_zero
 
 if (len(sys.argv) < 4 or len(sys.argv) > 6):
-    print("Wrong parameters. Use \"", sys.argv[0], "inputFile outputNumpy targetSize [numImages] [channels]\"")
+    print("Wrong parameters. Use \"", sys.argv[0], "inputFile outputNumpy img_size [numImages] [channels]\"")
     sys.exit(1)
 
 inputFile = sys.argv[1]
 outputFile = sys.argv[2]
 img_size = int(sys.argv[3])
-
 
 
 channelsString = None
@@ -39,8 +49,8 @@ if (channelsString):
     channels = np.asarray(channels, dtype=int, order=None)
 
 numChannels = channels.shape[0]
-print("channels: ", channels)
-print("numChannels:",numChannels)
+#print("channels: ", channels)
+#print("numChannels:",numChannels)
 
 
 def next_batch(dataset, image_size, batch_size, channels):
@@ -52,18 +62,14 @@ def next_batch(dataset, image_size, batch_size, channels):
     for i in range(0,batch_size):
         image, mask = dataset.nextImage_withmask()
 
-        # if (i % 100 == 0):
-        #     print(i)
-
         for idx, channel in enumerate(channels):
             img = image[:,:,channel]
             msk = mask[:,:,channel]
 
-            batch[i][:,:,idx] = pad_or_crop(img, image_size, 'symmetric')# pad_or_crop(img, image_size, 'constant', constant_values=(0))
-            batch_mask[i][:,:,idx] = pad_or_crop(msk, image_size, 'symmetric')# pad_or_crop(img, image_size, 'constant', constant_values=(0))
-            # print (imgCropped)
-    return batch, batch_mask
+            batch[i][:,:,idx] = pad_or_crop(img, image_size, 'symmetric')
+            batch_mask[i][:,:,idx] = pad_or_crop(msk, image_size, 'symmetric')
 
+    return batch, batch_mask
 
 
 
@@ -72,11 +78,8 @@ if (len(sys.argv) > 4):
     batchSize = min(int(sys.argv[4]),batchSize)
     print("NumImages:", batchSize)
 
-
-
-
 # data, masks = next_batch(dataset, img_size, batchSize, channels)
 data, masks = dataset.nextBatch_withmask(batchSize)
 data = data[:,:,:,channels]
 np.save(outputFile, data)
-print("Saved numpy array with shape", repr(data.shape))
+print("Saved numpy dataset with shape", repr(data.shape))
