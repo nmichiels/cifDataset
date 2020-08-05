@@ -19,6 +19,20 @@ class NPDataset_nolabels(Dataset):
   def images(self):
     """Return the entire array of images."""
     return self._images
+    
+  def maxIntensityOfChannel(self, channel):
+        """Returns the max intesity value of entire dataset for one specific channel."""
+        if channel >= self.num_channels:
+            raise Exception('Channel %d does not exist, num channels is %d'%(channel, self.num_channels))
+        return np.max(self.images[:,:,:,channel])
+
+  def minIntensityOfChannel(self, channel):
+        """Returns the min intesity value of entire dataset for one specific channel."""
+        if channel >= self.num_channels:
+            raise Exception('Channel %d does not exist, num channels is %d'%(channel, self.num_channels))
+        return np.min(self.images[:,:,:,channel])
+        
+        
 
           
   def next_batch(self, batch_size, image_size = None):

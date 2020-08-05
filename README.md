@@ -84,3 +84,11 @@ Converting a collection of tiff images to a hdf5 dataset. The images are centere
 ```
 python .\convertTIFFtoHDF5.py .\tiffImagesDir\image_%d.tiff .\tiffMasksDir\mask_%d.tiff output.hdf5 35
 ```
+
+### Visualizing datasets
+These visualization require opencv: `pip install opencv-python`
+
+Examples on how to visualize data using opencv are given in this script:
+```
+python showDataset.py
+```
